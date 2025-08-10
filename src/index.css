@@ -1,68 +1,136 @@
+@import "tailwindcss";
+@source "../index.html";
+@source "./**/*.{ts,tsx,js,jsx,html}";
+
+@theme {
+  --color-primary: #d8493f;
+  --color-ink: #343434;
+  --color-paper: #f8f4ed;
+  --font-sans: "Noto Sans KR", system-ui, Arial, sans-serif;
+  --font-pen: "Nanum Pen Script", cursive;
+  --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.1);
+  --animate-fadeUp: fadeUp 0.6s ease-out;
+  --animate-bloom: bloom 0.6s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+}
+
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes bloom {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --ink: #343434;
+  --paper: #f8f4ed;
+  --primary: #d8493f;
 }
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
+html,
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  height: 100%;
+}
+body {
+  background: var(--paper);
+  color: var(--ink);
+}
+.screen {
+  display: none;
+}
+.screen.active {
+  display: block;
+}
+.btn-cta {
+  background: var(--primary);
+  color: white;
+  transition: all 0.2s ease;
+}
+.btn-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px rgba(216, 73, 63, 0.3);
+}
+.flower-icon {
+  width: 42px;
+  height: 42px;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.18));
+}
+.bloom {
+  animation: bloom 0.5s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+}
+.leaflet-container {
+  background: #eef5fb;
+}
+/* 클러스터 선 숨기기 */
+.leaflet-interactive {
+  stroke: none;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.leaflet-marker-icon.cluster {
+  background: none !important;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.leaflet-marker-icon.cluster::before {
+  display: none !important;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* 또는 더 구체적으로 */
+.leaflet-marker-icon.cluster svg line,
+.leaflet-marker-icon.cluster svg path[stroke] {
+  stroke: transparent !important;
+  stroke-width: 0 !important;
+}
+.cluster-num {
+  position: absolute;
+  right: 0%;
+  bottom: 0%;
+  /* transform: translate(-50%, -50%); */
+  font-weight: 800;
+  font-size: 12px;
+  color: #b7182a;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  padding: 2px 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.paper-bg {
+  background: radial-gradient(
+      900px 420px at 50% -15%,
+      #ffffff,
+      rgba(255, 255, 255, 0)
+    ),
+    linear-gradient(180deg, #f7efe9 0%, #f4e8df 100%);
+}
+.paper-grain {
+  background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.028) 0,
+      rgba(0, 0, 0, 0.028) 2px,
+      rgba(255, 255, 255, 0.03) 2px,
+      rgba(255, 255, 255, 0.03) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.02) 0,
+      rgba(0, 0, 0, 0.02) 1px,
+      rgba(255, 255, 255, 0.02) 1px,
+      rgba(255, 255, 255, 0.02) 3px
+    );
+  opacity: 0.45;
+  mix-blend-mode: multiply;
 }

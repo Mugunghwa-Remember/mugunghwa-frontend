@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>무궁화 꽃이 피었습니다 — 2025 광복 80주년</title>
+    <meta
+      name="description"
+      content="광복 80주년 디지털 헌화 캠페인: 대한민국 실시간 지도에 무궁화를 심고 감사 편지를 남겨주세요."
+    />
+    <meta
+      property="og:title"
+      content="무궁화 꽃이 피었습니다 — 2025 광복 80주년"
+    />
+    <meta
+      property="og:description"
+      content="대한민국 지도에 당신의 무궁화를 심고, 감사의 편지를 남겨주세요."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#f8f4ed" />
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#d8493f",
+              ink: "#343434",
+              paper: "#f8f4ed",
+              rose: { 50: "#fff1f3", 100: "#ffe4e8" },
+            },
+            fontFamily: {
+              sans: ["Noto Sans KR", "system-ui", "Arial", "sans-serif"],
+              pen: ["Nanum Pen Script", "cursive"],
+            },
+            boxShadow: { soft: "0 8px 30px rgba(0,0,0,0.10)" },
+            keyframes: {
+              fadeUp: {
+                "0%": { opacity: 0, transform: "translateY(10px)" },
+                "100%": { opacity: 1, transform: "translateY(0)" },
+              },
+              bloom: {
+                "0%": { transform: "scale(0)", opacity: 0 },
+                "70%": { transform: "scale(1.08)", opacity: 1 },
+                "100%": { transform: "scale(1)" },
+              },
+            },
+            animation: {
+              fadeUp: "fadeUp .6s ease-out",
+              bloom: "bloom .6s cubic-bezier(.2,.8,.2,1.2)",
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&family=Nanum+Pen+Script&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Leaflet & MarkerCluster -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+    />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+    <!-- html2canvas for share card export -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <!-- Confetti (optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+    <style>
+      :root {
+        --ink: #343434;
+        --paper: #f8f4ed;
+        --primary: #d8493f;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        background: var(--paper);
+        color: var(--ink);
+      }
+      .screen {
+        display: none;
+      }
+      .screen.active {
+        display: block;
+      }
+      .btn-cta {
+        background: var(--primary);
+        color: white;
+        transition: all 0.2s ease;
+      }
+      .btn-cta:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 30px rgba(216, 73, 63, 0.3);
+      }
+      .flower-icon {
+        width: 42px;
+        height: 42px;
+        filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.18));
+      }
+      .bloom {
+        animation: bloom 0.5s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+      }
+      .leaflet-container {
+        background: #eef5fb;
+      }
+
+      /* number badge on cluster flower */
+      .cluster-num {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: 800;
+        font-size: 12px;
+        color: #b7182a;
+        background: rgba(255, 255, 255, 0.92);
+        border-radius: 999px;
+        padding: 2px 6px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      }
+
+      /* paper texture for card */
+      .paper-bg {
+        background: radial-gradient(
+            900px 420px at 50% -15%,
+            #ffffff,
+            rgba(255, 255, 255, 0)
+          ),
+          linear-gradient(180deg, #f7efe9 0%, #f4e8df 100%);
+      }
+      .paper-grain {
+        background: repeating-linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.028) 0,
+            rgba(0, 0, 0, 0.028) 2px,
+            rgba(255, 255, 255, 0.03) 2px,
+            rgba(255, 255, 255, 0.03) 4px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.02) 0,
+            rgba(0, 0, 0, 0.02) 1px,
+            rgba(255, 255, 255, 0.02) 1px,
+            rgba(255, 255, 255, 0.02) 3px
+          );
+        opacity: 0.45;
+        mix-blend-mode: multiply;
+      }
+    </style>
+  </head>
+  <body class="font-sans min-h-screen flex items-center justify-center p-4">
+    <main class="w-full max-w-3xl mx-auto">
+      <!-- Top Navigation (hidden by default; not used now) -->
+      <nav id="topNav" class="sticky top-3 z-[2001] mb-3 hidden">
+        <div
+          class="mx-auto max-w-md bg-white/80 backdrop-blur border border-black/10 rounded-full shadow-soft flex overflow-hidden"
+        >
+          <button
+            data-nav="intro"
+            class="flex-1 py-2 text-sm font-semibold bg-white"
+          >
+            처음으로
+          </button>
+          <button
+            data-nav="plant"
+            class="flex-1 py-2 text-sm font-semibold bg-white"
+          >
+            심기
+          </button>
+          <button
+            data-nav="explore"
+            class="flex-1 py-2 text-sm font-semibold bg-white"
+          >
+            구경하기
+          </button>
+          <button
+            data-nav="result"
+            class="flex-1 py-2 text-sm font-semibold bg-white"
+          >
+            결과
+          </button>
+        </div>
+      </nav>
+
+      <!-- Intro Screen -->
+      <section
+        id="screen-intro"
+        class="screen active animate-fadeUp text-center"
+      >
+        <div class="mb-6">
+          <h1 class="text-4xl font-bold text-primary">
+            무궁화 꽃이 피었습니다
+          </h1>
+          <p class="text-sm mt-1">2025년 광복 80주년 디지털 헌화 캠페인</p>
+        </div>
+        <div class="my-8 flex justify-center">
+          <!-- Refined Mugunghwa (static) -->
+          <svg
+            viewBox="0 0 120 120"
+            class="w-44 h-44"
+            aria-hidden="true"
+            role="img"
+          >
+            <defs>
+              <radialGradient id="hp_pet" cx="50%" cy="50%" r="68%">
+                <stop offset="0%" stop-color="#ffffff" />
+                <stop offset="88%" stop-color="#f3d6dc" />
+                <stop offset="100%" stop-color="#f3d6dc" />
+              </radialGradient>
+              <radialGradient id="hp_core" cx="50%" cy="50%" r="45%">
+                <stop offset="0%" stop-color="#ef4d62" />
+                <stop offset="70%" stop-color="#e25661" />
+                <stop offset="100%" stop-color="#e2566100" />
+              </radialGradient>
+              <filter id="hp_soft" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur
+                  in="SourceAlpha"
+                  stdDeviation="0.5"
+                  result="b"
+                />
+                <feMerge>
+                  <feMergeNode in="b" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <path
+                id="hp_petal"
+                d="M60 12 C 40 18, 36 42, 60 58 C 84 42, 80 18, 60 12 Z"
+              />
+            </defs>
+            <g
+              opacity=".98"
+              stroke="#efadb8"
+              stroke-width="1"
+              filter="url(#hp_soft)"
+            >
+              <use href="#hp_petal" fill="url(#hp_pet)" />
+              <use
+                href="#hp_petal"
+                fill="url(#hp_pet)"
+                transform="rotate(72 60 60)"
+              />
+              <use
+                href="#hp_petal"
+                fill="url(#hp_pet)"
+                transform="rotate(144 60 60)"
+              />
+              <use
+                href="#hp_petal"
+                fill="url(#hp_pet)"
+                transform="rotate(216 60 60)"
+              />
+              <use
+                href="#hp_petal"
+                fill="url(#hp_pet)"
+                transform="rotate(288 60 60)"
+              />
+            </g>
+            <circle cx="60" cy="60" r="12" fill="url(#hp_core)" />
+            <rect x="59" y="52" width="2" height="8" rx="1" fill="#fff5b0" />
+          </svg>
+        </div>
+        <p class="text-base leading-relaxed">
+          감사의 마음을 당신의 이름으로 심어주세요. 대한민국 실시간 지도에 꽃이
+          피어납니다.
+        </p>
+        <button
+          id="startBtn"
+          class="btn-cta w-full mt-8 py-3 rounded-xl text-lg font-bold"
+        >
+          시작하기
+        </button>
+        <p class="mt-6 text-xs text-ink/70">
+          메시지와 헌화 기록은 매년 8월 15일 리마인드됩니다.
+        </p>
+      </section>
+
+      <!-- Planting Screen with REAL MAP -->
+      <section id="screen-plant" class="screen animate-fadeUp">
+        <header class="mb-4 flex items-end justify-between">
+          <div>
+            <h2 class="text-2xl font-bold">
+              당신의 이름으로 무궁화를 심어주세요
+            </h2>
+            <p class="text-sm text-ink/70">
+              대한민국 지도 위 아무 곳이나 탭하여 위치를 고르세요.
+            </p>
+          </div>
+          <div class="hidden items-center gap-3"></div>
+        </header>
+
+        <div class="grid md:grid-cols-5 gap-4">
+          <div class="md:col-span-2 space-y-4 order-2 md:order-1">
+            <div>
+              <label for="nameInput" class="block text-sm font-semibold mb-1"
+                >이름/별명</label
+              >
+              <input
+                id="nameInput"
+                type="text"
+                autocomplete="name"
+                placeholder="이름 또는 별명 (2~15자)"
+                maxlength="20"
+                class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-rose-100 focus:border-rose-100 outline-none"
+              />
+              <p id="nameHelp" class="mt-1 text-xs text-rose-600 hidden">
+                이름/별명은 2~15자로 입력해주세요.
+              </p>
+            </div>
+            <div>
+              <label for="msgInput" class="block text-sm font-semibold mb-1"
+                >감사 편지 (선택)</label
+              >
+              <textarea
+                id="msgInput"
+                rows="3"
+                maxlength="50"
+                placeholder="50자 이내로 감사의 마음을 남겨주세요"
+                class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-rose-100 focus:border-rose-100 outline-none font-pen text-2xl"
+              ></textarea>
+              <p class="text-right text-xs text-ink/60">
+                <span id="msgCnt">0</span> / 50
+              </p>
+            </div>
+
+            <div class="p-4 bg-white/80 rounded-xl shadow-soft">
+              <h3 class="font-semibold text-center mb-2">전체 헌화 현황</h3>
+              <div class="flex items-center justify-between text-sm mb-1">
+                <span id="countText" class="font-bold text-primary"
+                  >785,432</span
+                >
+                <span class="text-ink/60">목표 800,000</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  id="progressBar"
+                  class="h-2 rounded-full"
+                  style="
+                    background: linear-gradient(90deg, #f2c6cc, #e8a7b1);
+                    width: 98%;
+                  "
+                ></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <button id="plantBtn" class="btn-cta py-3 rounded-xl font-bold">
+                이 위치에 심기
+              </button>
+              <button
+                id="randomBtn"
+                class="py-3 rounded-xl border border-gray-300 font-bold bg-white"
+              >
+                랜덤 위치
+              </button>
+            </div>
+            <p class="text-xs text-ink/60">
+              지도를 탭하면 임시 위치 표시가 생깁니다. 심기를 눌러 확정하세요.
+            </p>
+          </div>
+
+          <div class="md:col-span-3 order-1 md:order-2">
+            <div
+              id="map"
+              class="w-full h-[64vh] md:h-[520px] rounded-xl overflow-hidden shadow-soft relative"
+            >
+              <div
+                id="tapCoach"
+                class="absolute inset-0 pointer-events-none grid place-items-center z-[1000]"
+              >
+                <div
+                  class="bg-white/85 px-3 py-2 rounded-full text-sm shadow-soft"
+                >
+                  지도를 탭하여 심을 위치를 선택하세요
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Explore Screen -->
+      <section id="screen-explore" class="screen animate-fadeUp">
+        <header class="mb-4 flex items-end justify-between">
+          <div>
+            <h2 class="text-2xl font-bold">
+              대한민국에 피어난 무궁화 구경하기
+            </h2>
+            <p class="text-sm text-ink/70">
+              지도를 움직이면 주변 헌화를 불러옵니다. 마커를 누르면 이름과
+              편지를 볼 수 있어요.
+            </p>
+          </div>
+          <div class="hidden items-center gap-3"></div>
+        </header>
+        <div
+          id="mapExplore"
+          class="w-full h-[78vh] md:h-[620px] rounded-xl overflow-hidden shadow-soft relative"
+        >
+          <div
+            id="exploreCoach"
+            class="absolute top-3 left-1/2 -translate-x-1/2 bg-white/85 px-3 py-2 rounded-full text-sm shadow-soft"
+          >
+            마커를 눌러 이름과 편지를 보세요
+          </div>
+          <div
+            id="exploreLoading"
+            class="absolute top-3 right-3 bg-white/85 px-3 py-2 rounded-full text-sm shadow-soft hidden"
+          >
+            불러오는 중…
+          </div>
+        </div>
+        <p class="text-xs text-ink/60 mt-2 text-right">
+          이동/확대 시 최대 1,000개까지 로드합니다.
+        </p>
+      </section>
+
+      <!-- Result Screen -->
+      <section id="screen-result" class="screen animate-fadeUp text-center">
+        <h2 class="text-2xl font-bold">당신의 무궁화가 피었습니다</h2>
+        <p class="text-sm text-ink/70 mb-4">이 순간을 저장하고 공유해주세요.</p>
+
+        <article
+          id="shareCard"
+          class="relative w-full max-w-md mx-auto aspect-[2/3] rounded-2xl overflow-hidden shadow-soft"
+        >
+          <div class="absolute inset-0 paper-bg"></div>
+          <div class="absolute inset-0 paper-grain pointer-events-none"></div>
+          <div class="absolute inset-0 ring-1 ring-black/5 rounded-2xl"></div>
+
+          <div
+            class="relative z-10 h-full w-full flex flex-col items-center justify-between p-7"
+          >
+            <div class="pt-3 text-center">
+              <p class="text-xs tracking-wide">광복 80주년 기념</p>
+              <h3 class="text-[26px] md:text-3xl font-extrabold text-primary">
+                무궁화 꽃이 피었습니다
+              </h3>
+            </div>
+
+            <div
+              class="relative w-full flex-1 flex items-center justify-center"
+            >
+              <div id="flowerWatermark" class="absolute opacity-25"></div>
+              <div id="heroBlock" class="relative text-center">
+                <div class="text-[13px] tracking-wider text-ink/60 mb-1">
+                  독립유공자
+                </div>
+                <div id="heroName" class="text-2xl font-extrabold">유관순</div>
+                <div id="heroYears" class="text-xs text-ink/60">1902–1920</div>
+                <div id="heroLine" class="mt-2 text-sm italic">
+                  "대한독립 만세"
+                </div>
+              </div>
+              <div id="flowerSolo" class="hidden">
+                <div id="flowerSoloGraphic"></div>
+              </div>
+            </div>
+
+            <div class="w-full text-center">
+              <p id="resultMsg" class="font-pen text-2xl min-h-12"></p>
+              <p class="mt-2 text-xl font-bold" id="resultName"></p>
+              <p class="text-xs mt-1">님께서 대한민국에 희망을 피웠습니다.</p>
+            </div>
+            <div class="pb-2 text-xs">2025. 08. 15.</div>
+          </div>
+        </article>
+
+        <div class="mt-3 flex items-center justify-center gap-2">
+          <button
+            id="cardNextBtn"
+            class="px-3 py-2 rounded-full text-sm font-semibold bg-black/80 text-white"
+          >
+            카드 바꾸기
+          </button>
+          <button
+            id="changeHeroBtn"
+            class="px-3 py-2 rounded-full text-sm border"
+          >
+            주인공 바꾸기
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mt-4 max-w-md mx-auto">
+          <button
+            id="downloadBtn"
+            class="py-3 rounded-xl bg-gray-900 text-white font-bold"
+          >
+            이미지 저장
+          </button>
+          <button
+            id="shareBtn"
+            class="py-3 rounded-xl bg-[#FEE500] text-[#191919] font-bold"
+          >
+            카카오톡 공유
+          </button>
+        </div>
+        <button id="retryBtn" class="mt-4 text-sm text-ink/60 underline">
+          다시하기
+        </button>
+      </section>
+
+      <!-- Donation Modal -->
+      <div
+        id="donationModal"
+        class="fixed inset-0 hidden flex items-center justify-center bg-black/60 p-4 z-[10000]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="donationTitle"
+      >
+        <div
+          class="bg-white rounded-2xl p-7 max-w-sm w-full text-center shadow-soft"
+        >
+          <h3 id="donationTitle" class="text-xl font-bold mb-2">
+            마음을 나누어주세요
+          </h3>
+          <p class="text-sm text-ink/80">
+            이 캠페인은 자발적인 기부로 이어집니다. 독립유공자 후손 지원을 위해
+            함께 해주세요.
+          </p>
+          <button
+            id="donateBtn"
+            class="btn-cta w-full mt-5 py-3 rounded-xl font-bold"
+          >
+            카카오같이가치 기부하기
+          </button>
+          <button id="skipDonate" class="mt-3 text-sm text-ink/60 underline">
+            다음에 할게요
+          </button>
+        </div>
+      </div>
+    </main>
+    <button
+      id="exploreFab"
+      class="fixed right-4 bottom-4 z-[2002] px-4 py-3 rounded-full shadow-soft bg-black/80 text-white font-semibold hidden"
+    >
+      구경하기
+    </button>
+
+    <!-- Mobile bottom bar -->
+    <div
+      id="mobileBar"
+      class="md:hidden fixed bottom-0 inset-x-0 z-[2003] px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 bg-white/90 backdrop-blur border-t border-black/10 shadow-soft hidden"
+    >
+      <div id="mobileBarPlant" class="flex gap-2">
+        <button
+          id="mRandomBtn"
+          class="flex-1 py-3 rounded-xl border font-semibold"
+        >
+          랜덤
+        </button>
+        <button
+          id="mPlantBtn"
+          class="flex-[2] py-3 rounded-xl btn-cta font-bold"
+        >
+          이 위치에 심기
+        </button>
+      </div>
+      <div id="mobileBarExplore" class="hidden">
+        <button
+          id="mGoPlantBtn"
+          class="w-full py-3 rounded-xl btn-cta font-bold"
+        >
+          심으러 가기
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // tiny helper: safe listener
+      const on = (el, ev, fn, opts) => {
+        if (el && el.addEventListener) el.addEventListener(ev, fn, opts);
+      };
+
+      // ---------- DOM ----------
+      const $ = (sel) => document.querySelector(sel);
+      const screens = {
+        intro: $("#screen-intro"),
+        plant: $("#screen-plant"),
+        explore: $("#screen-explore"),
+        result: $("#screen-result"),
+      };
+
+      const startBtn = $("#startBtn");
+      const nameInput = $("#nameInput");
+      const msgInput = $("#msgInput");
+      const msgCnt = $("#msgCnt");
+      const nameHelp = $("#nameHelp");
+
+      const plantBtn = $("#plantBtn");
+      const randomBtn = $("#randomBtn");
+
+      const countText = $("#countText");
+      const progressBar = $("#progressBar");
+
+      const shareCard = $("#shareCard");
+      const resultName = $("#resultName");
+      const resultMsg = $("#resultMsg");
+      const downloadBtn = $("#downloadBtn");
+      const shareBtn = $("#shareBtn");
+      const retryBtn = $("#retryBtn");
+
+      // top nav (kept for safety, hidden)
+      const topNav = $("#topNav");
+      const navBtns = topNav ? topNav.querySelectorAll("button[data-nav]") : [];
+
+      // share card controls
+      const cardNextBtn = $("#cardNextBtn");
+      const changeHeroBtn = $("#changeHeroBtn");
+      const heroBlock = $("#heroBlock");
+      const heroNameEl = $("#heroName");
+      const heroYearsEl = $("#heroYears");
+      const heroLineEl = $("#heroLine");
+      const flowerWatermark = $("#flowerWatermark");
+      const flowerSolo = $("#flowerSolo");
+      const flowerSoloGraphic = $("#flowerSoloGraphic");
+
+      const donationModal = $("#donationModal");
+      const donateBtn = $("#donateBtn");
+      const skipDonate = $("#skipDonate");
+
+      // explore screen DOM
+      const mapExploreEl = $("#mapExplore");
+      const exploreLoading = $("#exploreLoading");
+
+      // floating explore button
+      const exploreFab = $("#exploreFab");
+
+      // mobile bottom bar DOM
+      const mobileBar = $("#mobileBar");
+      const mobileBarPlant = $("#mobileBarPlant");
+      const mobileBarExplore = $("#mobileBarExplore");
+      const mRandomBtn = $("#mRandomBtn");
+      const mPlantBtn = $("#mPlantBtn");
+      const mGoPlantBtn = $("#mGoPlantBtn");
+
+      // ---------- MAP ----------
+      let map, markerLayer, pendingMarker; // pending marker for preview, fixed after planting
+      const KOREA_CENTER = [36.5, 127.9];
+      const KOREA_BOUNDS = L.latLngBounds([32.0, 123.0], [39.5, 132.1]);
+
+      // Pretty mugunghwa as DivIcon SVG (pastel). Unique gradient id per icon to avoid collisions.
+      function mugunghwaSVG(size = 46, hue = 350) {
+        const edgeTint = `hsl(${hue}, 38%, 92%)`;
+        const gid = "mg" + Math.random().toString(36).slice(2, 8);
+        const rot = (-5 + Math.random() * 10).toFixed(2);
+        return `
+<div class="bloom" style="transform: rotate(${rot}deg)">
+<svg class="flower-icon" viewBox="0 0 120 120" width="${size}" height="${size}" aria-hidden="true" role="img">
+  <defs>
+    <radialGradient id="${gid}_petal" cx="50%" cy="50%" r="68%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="88%" stop-color="${edgeTint}"/>
+      <stop offset="100%" stop-color="${edgeTint}"/>
+    </radialGradient>
+    <radialGradient id="${gid}_core" cx="50%" cy="50%" r="45%">
+      <stop offset="0%" stop-color="#e14857"/>
+      <stop offset="60%" stop-color="#e14857" stop-opacity=".3"/>
+      <stop offset="100%" stop-color="#e1485700"/>
+    </radialGradient>
+    <linearGradient id="${gid}_leaf" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0fbf3"/>
+      <stop offset="100%" stop-color="#ccefd9"/>
+    </linearGradient>
+    <filter id="${gid}_soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="0.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <path id="${gid}_petalPath" d="M60 12 C 40 18, 36 42, 60 58 C 84 42, 80 18, 60 12 Z"/>
+    <path id="${gid}_leafPath" d="M60 100 C 56 96, 46 92, 38 84 C 30 76, 30 66, 42 64 C 52 62, 60 68, 66 74 C 72 80, 78 88, 80 94 C 72 98, 66 100, 60 100 Z"/>
+  </defs>
+
+  <!-- Leaves (subtle) -->
+  <g opacity=".85" filter="url(#${gid}_soft)">
+    <use href="#${gid}_leafPath" fill="url(#${gid}_leaf)" stroke="#b2e0c3" stroke-width="1" transform="rotate(-16 60 80) translate(0,-6)"/>
+    <use href="#${gid}_leafPath" fill="url(#${gid}_leaf)" stroke="#b2e0c3" stroke-width="1" transform="rotate(16 60 80) translate(6,-2)"/>
+  </g>
+
+  <!-- Five petals -->
+  <g opacity=".98" stroke="#efadb8" stroke-width="1" filter="url(#${gid}_soft)">
+    <use href="#${gid}_petalPath" fill="url(#${gid}_petal)"/>
+    <use href="#${gid}_petalPath" fill="url(#${gid}_petal)" transform="rotate(72 60 60)"/>
+    <use href="#${gid}_petalPath" fill="url(#${gid}_petal)" transform="rotate(144 60 60)"/>
+    <use href="#${gid}_petalPath" fill="url(#${gid}_petal)" transform="rotate(216 60 60)"/>
+    <use href="#${gid}_petalPath" fill="url(#${gid}_petal)" transform="rotate(288 60 60)"/>
+  </g>
+
+  <!-- Soft red core (smaller, no spikes) -->
+  <circle cx="60" cy="60" r="12" fill="url(#${gid}_core)"/>
+
+  <!-- Light-yellow stigma only -->
+  <rect x="59" y="52" width="2" height="8" rx="1" fill="#fff5b0"/>
+</svg>
+</div>`;
+      }
+
+      function createFlowerIcon() {
+        const hue = 340 + Math.floor(Math.random() * 20); // slight variety 340~360
+        return L.divIcon({
+          html: mugunghwaSVG(42, hue),
+          className: "mugunghwa",
+          iconSize: [42, 42],
+          iconAnchor: [21, 21],
+        });
+      }
+
+      // size grows with count and a bit with zoom
+      function clusterSize(count, zoom = 6) {
+        const MIN = 46,
+          MAX = 120; // px
+        const REF = 400; // count at which we approach MAX
+        const t = Math.min(1, Math.log10(count + 1) / Math.log10(REF));
+        let size = MIN + (MAX - MIN) * t;
+        const zoomScale = 0.9 + (zoom - 6) * 0.08; // gentle zoom influence
+        size *= Math.max(0.8, Math.min(1.5, zoomScale));
+        return Math.round(size);
+      }
+      function createClusterFlowerIcon(count, zoom = 6) {
+        const size = clusterSize(count, zoom);
+        const html = `<div class="relative" style="width:${size}px;height:${size}px">${mugunghwaSVG(
+          size,
+          350
+        )}<div class="cluster-num">${count}</div></div>`;
+        return L.divIcon({
+          html,
+          className: "cluster",
+          iconSize: [size, size],
+          iconAnchor: [size / 2, size / 2],
+        });
+      }
+
+      function initMap() {
+        map = L.map("map", {
+          center: KOREA_CENTER,
+          zoom: 6,
+          minZoom: 5,
+          maxZoom: 12,
+          maxBounds: KOREA_BOUNDS,
+          maxBoundsViscosity: 1.0,
+          zoomControl: false,
+        });
+
+        L.control.zoom({ position: "bottomright" }).addTo(map);
+
+        // Carto Positron tiles (clean look)
+        L.tileLayer(
+          "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+          {
+            attribution: "&copy; OpenStreetMap & CARTO",
+            crossOrigin: true,
+          }
+        ).addTo(map);
+
+        markerLayer = L.markerClusterGroup({
+          chunkedLoading: true,
+          spiderfyOnMaxZoom: true,
+          showCoverageOnHover: false,
+          iconCreateFunction: (cluster) =>
+            createClusterFlowerIcon(
+              cluster.getChildCount(),
+              map && map.getZoom ? map.getZoom() : 6
+            ),
+        });
+        map.addLayer(markerLayer);
+
+        // keep cluster icon size synced with zoom
+        map.on(
+          "zoomend",
+          () => markerLayer.refreshClusters && markerLayer.refreshClusters()
+        );
+
+        // seed mock existing flowers (visual only)
+        seedMockFlowers(280);
+
+        // preview marker on click
+        map.on("click", (e) => {
+          const ll = e.latlng;
+          if (pendingMarker) {
+            map.removeLayer(pendingMarker);
+          }
+          pendingMarker = L.marker(ll, {
+            icon: createFlowerIcon(),
+            keyboard: true,
+            alt: "심을 위치",
+          }).addTo(map);
+          $("#tapCoach")?.classList.add("hidden");
+          selectedLatLng = ll;
+          vibrate(10);
+        });
+      }
+
+      function seedMockFlowers(n = 200) {
+        for (let i = 0; i < n; i++) {
+          const lat = randBetween(33.1, 38.5);
+          const lng = randBetween(126.0, 129.6);
+          const m = L.marker([lat, lng], { icon: createFlowerIcon() });
+          markerLayer.addLayer(m);
+        }
+      }
+
+      function randBetween(a, b) {
+        return a + Math.random() * (b - a);
+      }
+
+      // ---------- Explore (browse others) ----------
+      let exploreMap, exploreLayer, exploreAbort;
+      const MAX_EXPLORE_POINTS = 1000;
+
+      function esc(str) {
+        return String(str || "").replace(
+          /[&<>"']/g,
+          (m) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[m])
+        );
+      }
+
+      function popupHTML(item) {
+        const name = esc(item.name || "익명");
+        const msg = esc(item.msg || "");
+        const date = item.ts
+          ? new Date(item.ts).toISOString().slice(0, 10)
+          : "";
+        return `<div class="text-sm"><div class="font-bold mb-1">${name}</div>${
+          msg ? `<div class="leading-snug">${msg}</div>` : ""
+        }${
+          date ? `<div class="text-xs text-ink/60 mt-1">${date}</div>` : ""
+        }</div>`;
+      }
+
+      function updateExploreMarkers(points) {
+        if (!exploreLayer) return;
+        exploreLayer.clearLayers();
+        (points || []).forEach((p) => {
+          const m = L.marker([p.lat, p.lng], {
+            icon: createFlowerIcon(),
+          }).bindPopup(popupHTML(p));
+          exploreLayer.addLayer(m);
+        });
+      }
+
+      async function loadExploreForBounds() {
+        if (!exploreMap) return;
+        const b = exploreMap.getBounds();
+        const bbox = [
+          b.getWest().toFixed(6),
+          b.getSouth().toFixed(6),
+          b.getEast().toFixed(6),
+          b.getNorth().toFixed(6),
+        ].join(",");
+        try {
+          exploreLoading?.classList.remove("hidden");
+          if (exploreAbort) exploreAbort.abort();
+          exploreAbort = new AbortController();
+          const res = await fetch(
+            `${API_BASE}/plants/search?bbox=${bbox}&limit=${MAX_EXPLORE_POINTS}`,
+            { signal: exploreAbort.signal, cache: "no-store" }
+          );
+          if (!res.ok) throw new Error("bad status");
+          const data = await res.json();
+          updateExploreMarkers(Array.isArray(data) ? data : data.items || []);
+        } catch (e) {
+          // fallback: mock few points around center
+          const c = exploreMap.getCenter();
+          const arr = Array.from({ length: 120 }, () => ({
+            lat: c.lat + (Math.random() - 0.5) * 2,
+            lng: c.lng + (Math.random() - 0.5) * 2,
+            name: mockNames[Math.floor(Math.random() * mockNames.length)],
+            msg: [
+              "대한독립만세",
+              "고맙습니다",
+              "잊지 않겠습니다",
+              "평화를 빕니다",
+            ][Math.floor(Math.random() * 4)],
+            ts: Date.now() - Math.floor(Math.random() * 86400000),
+          }));
+          updateExploreMarkers(arr);
+        } finally {
+          exploreLoading?.classList.add("hidden");
+        }
+      }
+
+      function initExploreMap() {
+        if (exploreMap) return; // once
+        exploreMap = L.map("mapExplore", {
+          center: KOREA_CENTER,
+          zoom: 6,
+          minZoom: 5,
+          maxZoom: 12,
+          maxBounds: KOREA_BOUNDS,
+          maxBoundsViscosity: 1.0,
+          zoomControl: false,
+        });
+        L.control.zoom({ position: "bottomright" }).addTo(exploreMap);
+        L.tileLayer(
+          "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+          {
+            attribution: "&copy; OpenStreetMap & CARTO",
+            crossOrigin: true,
+          }
+        ).addTo(exploreMap);
+        exploreLayer = L.markerClusterGroup({
+          chunkedLoading: true,
+          spiderfyOnMaxZoom: true,
+          showCoverageOnHover: false,
+          iconCreateFunction: (cluster) =>
+            createClusterFlowerIcon(
+              cluster.getChildCount(),
+              exploreMap ? exploreMap.getZoom() : 6
+            ),
+        });
+        exploreMap.addLayer(exploreLayer);
+
+        // keep cluster icon size synced with zoom
+        exploreMap.on(
+          "zoomend",
+          () => exploreLayer.refreshClusters && exploreLayer.refreshClusters()
+        );
+
+        const debounced = debounce(loadExploreForBounds, 250);
+        exploreMap.on("moveend", debounced);
+        debounced();
+      }
+
+      function debounce(fn, wait = 300) {
+        let t;
+        return (...args) => {
+          clearTimeout(t);
+          t = setTimeout(() => fn(...args), wait);
+        };
+      }
+
+      // ---------- State ----------
+      const mockNames = [
+        "김민준",
+        "이서연",
+        "박도윤",
+        "최지우",
+        "정하윤",
+        "강시우",
+        "조서아",
+        "윤이준",
+        "임아인",
+        "한지호",
+      ];
+      let flowerCount = 785432;
+      let target = 800000;
+      const API_BASE = window.MUGUNGHWA_API || "/api";
+      let selectedLatLng = null; // chosen spot before confirm
+      let plantedOnce = false;
+      let currentScreen = "intro";
+
+      // ---------- Utils ----------
+      const toComma = (n) => n.toLocaleString("ko-KR");
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+      const vibrate = (ms = 10) => navigator.vibrate && navigator.vibrate(ms);
+      function setActiveNav(key) {
+        if (!navBtns) return;
+        navBtns.forEach((btn) => {
+          const active = btn.dataset.nav === key;
+          btn.classList.toggle("bg-black/80", active);
+          btn.classList.toggle("text-white", active);
+          btn.classList.toggle("bg-white", !active);
+          btn.setAttribute("aria-current", active ? "page" : "false");
+        });
+      }
+      function switchScreen(key) {
+        Object.values(screens).forEach((s) => s.classList.remove("active"));
+        if (screens[key]) screens[key].classList.add("active");
+        setActiveNav(key);
+        currentScreen = key;
+        if (topNav) {
+          topNav.classList.toggle("hidden", true);
+        }
+        updateFab();
+      }
+
+      function validateName() {
+        const v = nameInput.value.trim();
+        const ok = v.length >= 2 && v.length <= 15;
+        nameHelp.classList.toggle("hidden", ok);
+        return ok;
+      }
+
+      function setCount(n) {
+        flowerCount = clamp(n, 0, 10000000);
+        countText.textContent = toComma(flowerCount);
+        const p = clamp((flowerCount / target) * 100, 0, 100);
+        progressBar.style.width = p + "%";
+      }
+
+      function updateStats() {
+        setCount(flowerCount + 1);
+      }
+
+      async function loadStats() {
+        try {
+          const res = await fetch(`${API_BASE}/stats`, { cache: "no-store" });
+          if (res.ok) {
+            const data = await res.json();
+            if (typeof data.target === "number") target = data.target;
+            if (typeof data.count === "number") setCount(data.count);
+          }
+        } catch (e) {}
+      }
+
+      function initRealtime() {
+        try {
+          const es = new EventSource(`${API_BASE}/stats/stream`);
+          es.onmessage = (ev) => {
+            try {
+              const d = JSON.parse(ev.data);
+              if (typeof d.count === "number") setCount(d.count);
+            } catch {
+              const n = +ev.data;
+              if (!Number.isNaN(n)) setCount(n);
+            }
+          };
+          es.onerror = () => {
+            try {
+              es.close();
+            } catch (e) {}
+          };
+        } catch (e) {}
+      }
+
+      async function postPlant(payload) {
+        try {
+          await fetch(`${API_BASE}/plants`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+        } catch (e) {}
+      }
+
+      // ---------- Card variants (heroes) ----------
+      const HEROES = [
+        {
+          id: "ahn",
+          name: "안중근",
+          years: "1879–1910",
+          line: "나라를 위한 용기와 희생",
+        },
+        {
+          id: "kimgoo",
+          name: "김구",
+          years: "1876–1949",
+          line: "나의 소원, 대한의 완전한 독립",
+        },
+        {
+          id: "yugwansun",
+          name: "유관순",
+          years: "1902–1920",
+          line: "대한독립 만세",
+        },
+        {
+          id: "yoon",
+          name: "윤봉길",
+          years: "1908–1932",
+          line: "젊은 피로 나라를 밝히다",
+        },
+        {
+          id: "ahnchangho",
+          name: "안창호",
+          years: "1878–1938",
+          line: "나라의 힘은 국민의 힘",
+        },
+      ];
+      let currentHeroIndex = 0;
+      const STYLES = ["paper", "flower", "minimal"];
+      let styleIndex = 0; // default paper
+      let currentStyle = STYLES[styleIndex];
+
+      function hashStr(s) {
+        let h = 0;
+        for (const ch of s) {
+          h = (h << 5) - h + ch.charCodeAt(0);
+          h |= 0;
+        }
+        return Math.abs(h);
+      }
+      function pickHeroIndex(seed) {
+        return hashStr(seed || String(Date.now())) % HEROES.length;
+      }
+
+      function renderHero() {
+        const hero = HEROES[currentHeroIndex];
+        if (!hero) return;
+        heroNameEl.textContent = hero.name;
+        heroYearsEl.textContent = hero.years;
+        heroLineEl.textContent = hero.line;
+      }
+
+      function renderFlowers() {
+        flowerWatermark.innerHTML = mugunghwaSVG(120, 350);
+        flowerSoloGraphic.innerHTML = mugunghwaSVG(140, 350);
+      }
+      // Backward-compat shim
+      function renderFlowerGraphic() {
+        renderFlowers();
+      }
+
+      function setCardStyle(style) {
+        currentStyle = style;
+        const isPaper = style === "paper";
+        const isFlower = style === "flower";
+        heroBlock.classList.toggle("hidden", !isPaper && style !== "minimal");
+        flowerWatermark.classList.toggle(
+          "hidden",
+          !isPaper && style !== "minimal"
+        );
+        flowerSolo.classList.toggle("hidden", !isFlower);
+      }
+
+      function nextCardStyle() {
+        styleIndex = (styleIndex + 1) % STYLES.length;
+        setCardStyle(STYLES[styleIndex]);
+      }
+
+      function cycleHero() {
+        currentHeroIndex = (currentHeroIndex + 1) % HEROES.length;
+        renderHero();
+      }
+
+      function fillResult() {
+        const name = nameInput.value.trim();
+        const msg = msgInput.value.trim();
+        resultName.textContent = name;
+        resultMsg.textContent =
+          msg || "당신의 마음이 모여 대한민국을 빛냅니다.";
+        renderFlowers();
+        if (!Number.isInteger(currentHeroIndex) || currentHeroIndex < 0) {
+          currentHeroIndex = pickHeroIndex(name);
+        }
+        renderHero();
+        setCardStyle("paper");
+        styleIndex = 0;
+      }
+
+      function exportShareCard() {
+        html2canvas(shareCard, {
+          backgroundColor: "#f8f4ed",
+          useCORS: true,
+        }).then((canvas) => {
+          const link = document.createElement("a");
+          link.download = "mugunghwa_certificate.png";
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        });
+      }
+
+      // ---------- Wire events (safe) ----------
+      function wireEvents() {
+        // nav buttons (defensive; nav is hidden)
+        navBtns &&
+          navBtns.forEach((btn) => {
+            on(btn, "click", () => {
+              const key = btn.dataset.nav;
+              if (key === "explore") {
+                switchScreen("explore");
+                setTimeout(() => {
+                  if (!exploreMap) initExploreMap();
+                  else loadExploreForBounds();
+                }, 50);
+              } else if (key === "plant") {
+                switchScreen("plant");
+                if (!map) initMap();
+              } else if (key === "intro") {
+                switchScreen("intro");
+              } else if (key === "result") {
+                switchScreen("result");
+              }
+            });
+          });
+
+        // floating explore button toggle
+        on(exploreFab, "click", () => {
+          if (currentScreen === "plant") {
+            switchScreen("explore");
+            setTimeout(() => {
+              if (!exploreMap) initExploreMap();
+              else loadExploreForBounds();
+            }, 50);
+          } else if (currentScreen === "explore") {
+            switchScreen("plant");
+            if (!map) initMap();
+          }
+        });
+
+        on(startBtn, "click", () => {
+          if (!nameInput.value)
+            nameInput.value =
+              mockNames[Math.floor(Math.random() * mockNames.length)];
+          switchScreen("plant");
+          setTimeout(() => $("#tapCoach")?.classList.remove("hidden"), 120);
+          if (!map) initMap();
+          loadStats();
+          initRealtime();
+        });
+
+        on(msgInput, "input", () => {
+          msgCnt.textContent = msgInput.value.length;
+        });
+        on(nameInput, "input", validateName);
+
+        on(randomBtn, "click", () => {
+          const lat = randBetween(33.1, 38.5);
+          const lng = randBetween(126.0, 129.6);
+          if (!map) initMap();
+          map.setView([lat, lng], 7, { animate: true });
+          if (pendingMarker) map.removeLayer(pendingMarker);
+          pendingMarker = L.marker([lat, lng], {
+            icon: createFlowerIcon(),
+          }).addTo(map);
+          selectedLatLng = L.latLng(lat, lng);
+          $("#tapCoach")?.classList.add("hidden");
+        });
+
+        on(plantBtn, "click", () => {
+          if (!validateName()) {
+            nameInput.focus();
+            vibrate(20);
+            return;
+          }
+          if (!selectedLatLng) {
+            vibrate(20);
+            alert("심을 위치를 먼저 선택하세요.");
+            return;
+          }
+          if (plantedOnce) return;
+          plantedOnce = true;
+
+          // finalize: add marker into cluster layer
+          const planted = L.marker(selectedLatLng, {
+            icon: createFlowerIcon(),
+          });
+          markerLayer.addLayer(planted);
+          if (pendingMarker) {
+            map.removeLayer(pendingMarker);
+            pendingMarker = null;
+          }
+          updateStats();
+
+          // fire-and-forget: 서버에 헌화 기록 전송
+          postPlant({
+            name: nameInput.value.trim(),
+            msg: msgInput.value.trim(),
+            lat: selectedLatLng.lat,
+            lng: selectedLatLng.lng,
+            ts: Date.now(),
+          });
+
+          try {
+            window.confetti &&
+              window.confetti({
+                particleCount: 90,
+                spread: 60,
+                startVelocity: 38,
+                origin: { y: 0.25 },
+              });
+          } catch (e) {}
+          vibrate(15);
+
+          setTimeout(() => showDonation(true), 900);
+        });
+
+        on(downloadBtn, "click", exportShareCard);
+
+        on(shareBtn, "click", () => {
+          alert(
+            "카카오 공유는 곧 연결됩니다. 우선 이미지를 저장해 공유해주세요."
+          );
+        });
+
+        on(retryBtn, "click", () => {
+          plantedOnce = false;
+          selectedLatLng = null;
+          $("#tapCoach")?.classList.remove("hidden");
+          switchScreen("plant");
+        });
+
+        on(donateBtn, "click", () => {
+          showDonation(false);
+          window.open("https://together.kakao.com/", "_blank");
+          setTimeout(() => {
+            fillResult();
+            switchScreen("result");
+          }, 300);
+        });
+        on(skipDonate, "click", () => {
+          showDonation(false);
+          setTimeout(() => {
+            fillResult();
+            switchScreen("result");
+          }, 200);
+        });
+
+        // share card variant events
+        on(cardNextBtn, "click", nextCardStyle);
+        on(changeHeroBtn, "click", cycleHero);
+
+        // mobile bottom bar events
+        on(mRandomBtn, "click", () => randomBtn && randomBtn.click());
+        on(mPlantBtn, "click", () => plantBtn && plantBtn.click());
+        on(mGoPlantBtn, "click", () => {
+          switchScreen("plant");
+          if (!map) initMap();
+        });
+      }
+
+      // modal helpers
+      function showDonation(open) {
+        donationModal.classList.toggle("hidden", !open);
+        document.body.classList.toggle("overflow-hidden", open);
+        if (open) {
+          donateBtn && donateBtn.focus && donateBtn.focus();
+          const esc = (e) => {
+            if (e.key === "Escape") {
+              showDonation(false);
+              document.removeEventListener("keydown", esc);
+            }
+          };
+          document.addEventListener("keydown", esc);
+        }
+      }
+
+      // ---------- Self-tests (basic + new) ----------
+      (function selfTest() {
+        try {
+          const s = mugunghwaSVG(42, 350);
+          console.assert(
+            typeof s === "string" && s.length > 50,
+            "mugunghwaSVG should return non-empty string"
+          );
+          const tmp = document.createElement("div");
+          tmp.innerHTML = s;
+          console.assert(
+            !!tmp.querySelector("svg"),
+            "mugunghwaSVG string should contain an <svg>"
+          );
+          console.assert(
+            !/\bundefined\b|\bNaN\b/.test(s),
+            "SVG should not include undefined/NaN"
+          );
+
+          console.assert(
+            typeof renderFlowers === "function",
+            "renderFlowers must be defined"
+          );
+          console.assert(
+            typeof renderFlowerGraphic === "function",
+            "renderFlowerGraphic shim must exist"
+          );
+          console.assert(
+            typeof setCardStyle === "function",
+            "setCardStyle must be defined"
+          );
+          console.assert(
+            typeof fillResult === "function",
+            "fillResult must be defined"
+          );
+          try {
+            setCardStyle("paper");
+            setCardStyle("flower");
+            setCardStyle("minimal");
+          } catch (e) {
+            console.error("setCardStyle threw", e);
+          }
+          console.assert(
+            typeof initExploreMap === "function",
+            "initExploreMap must be defined"
+          );
+          console.assert(
+            typeof loadExploreForBounds === "function",
+            "loadExploreForBounds must be defined"
+          );
+
+          console.assert(
+            !!screens.intro &&
+              !!screens.plant &&
+              !!screens.explore &&
+              !!screens.result,
+            "all screens mounted"
+          );
+          console.assert(
+            typeof on === "function",
+            "safe listener helper exists"
+          );
+
+          // growth tests for cluster icon
+          const ci1 = createClusterFlowerIcon(5, 6);
+          const ci2 = createClusterFlowerIcon(50, 6);
+          const ci3 = createClusterFlowerIcon(500, 6);
+          console.assert(
+            ci1 && typeof ci1.options.html === "string",
+            "cluster icon should have html"
+          );
+          console.assert(
+            ci2.options.iconSize[0] > ci1.options.iconSize[0],
+            "size must grow with count"
+          );
+          console.assert(
+            ci3.options.iconSize[0] > ci2.options.iconSize[0],
+            "size must keep growing"
+          );
+        } catch (err) {
+          console.error("[SelfTest] failed", err);
+        }
+      })();
+
+      function updateFab() {
+        const onMap = currentScreen === "plant" || currentScreen === "explore";
+        if (exploreFab) {
+          exploreFab.classList.toggle("hidden", !onMap);
+          exploreFab.textContent =
+            currentScreen === "plant" ? "구경하기" : "심으러 가기";
+        }
+        updateMobileBar();
+      }
+
+      function updateMobileBar() {
+        if (!mobileBar) return;
+        const onPlant = currentScreen === "plant";
+        const onExplore = currentScreen === "explore";
+        mobileBar.classList.toggle("hidden", !(onPlant || onExplore));
+        if (mobileBarPlant) mobileBarPlant.classList.toggle("hidden", !onPlant);
+        if (mobileBarExplore)
+          mobileBarExplore.classList.toggle("hidden", !onExplore);
+      }
+
+      // restore simple cache & wire events after DOM is ready
+      function boot() {
+        try {
+          const cached = JSON.parse(
+            localStorage.getItem("mugunghwa-demo") || "null"
+          );
+          if (cached) {
+            nameInput.value = cached.name || "";
+            msgInput.value = cached.msg || "";
+          }
+        } catch (e) {}
+        on(window, "beforeunload", () => {
+          try {
+            localStorage.setItem(
+              "mugunghwa-demo",
+              JSON.stringify({ name: nameInput.value, msg: msgInput.value })
+            );
+          } catch (e) {}
+        });
+        wireEvents();
+        updateFab();
+      }
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", boot);
+      } else {
+        boot();
+      }
+    </script>
+  </body>
+</html>
