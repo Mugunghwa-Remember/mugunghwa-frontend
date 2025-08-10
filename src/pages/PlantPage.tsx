@@ -181,9 +181,6 @@ export default function PlantPage() {
   const [tapCoachHidden, setTapCoachHidden] = useState(true);
   const [plantedOnce, setPlantedOnce] = useState(false);
   const [selectedLatLng, setSelectedLatLng] = useState<L.LatLng | null>(null);
-  const [latInput, setLatInput] = useState("");
-  const [lngInput, setLngInput] = useState("");
-  const [latLngError, setLatLngError] = useState("");
   const [showMobileInputs, setShowMobileInputs] = useState(false);
 
   const mapRef = useRef<L.Map | null>(null);
@@ -284,9 +281,6 @@ export default function PlantPage() {
 
         map.setView(e.latlng, Math.max(map.getZoom(), 10), { animate: true });
 
-        setLatInput(`${e.latlng.lat}`);
-        setLngInput(`${e.latlng.lng}`);
-
         pendingMarkerRef.current = marker;
         setSelectedLatLng(e.latlng);
         setTapCoachHidden(true);
@@ -350,66 +344,12 @@ export default function PlantPage() {
     pendingMarkerRef.current = L.marker(ll, { icon: createFlowerIcon() }).addTo(
       map
     );
-    setLatInput(`${ll.lat}`);
-    setLngInput(`${ll.lng}`);
     setSelectedLatLng(ll);
     setTapCoachHidden(true);
     // Reset mobile inputs when new location is selected
     setShowMobileInputs(false);
     // Reset planted state for new location
     setPlantedOnce(false);
-  }
-
-  function handleLatLngInput() {
-    const map = mapRef.current;
-    if (!map) return;
-
-    // 에러 메시지 초기화
-    setLatLngError("");
-
-    const lat = parseFloat(latInput);
-    const lng = parseFloat(lngInput);
-
-    if (isNaN(lat) || isNaN(lng)) {
-      setLatLngError("올바른 위도와 경도를 입력해주세요.");
-      return;
-    }
-
-    // 위도 범위 체크 (한국: 33~39도)
-    if (lat < 33 || lat > 39) {
-      setLatLngError("위도는 33~39도 사이로 입력해주세요.");
-      return;
-    }
-
-    // 경도 범위 체크 (한국: 124~132도)
-    if (lng < 124 || lng > 132) {
-      setLatLngError("경도는 124~132도 사이로 입력해주세요.");
-      return;
-    }
-
-    // 육지 경계 내부인지 확인
-    if (!isPointInPolygon([lat, lng], koreaLandBoundary)) {
-      setLatLngError(
-        "입력한 좌표가 육지가 아닙니다. 다른 좌표를 입력해주세요."
-      );
-      return;
-    }
-
-    const ll = L.latLng(lat, lng);
-    map.setView(ll, 10, { animate: true });
-
-    if (pendingMarkerRef.current) map.removeLayer(pendingMarkerRef.current);
-    pendingMarkerRef.current = L.marker(ll, { icon: createFlowerIcon() }).addTo(
-      map
-    );
-    setSelectedLatLng(ll);
-    setTapCoachHidden(true);
-    // Reset mobile inputs when new location is selected
-    setShowMobileInputs(false);
-    // Reset planted state for new location
-    setPlantedOnce(false);
-
-    vibrate(10);
   }
 
   async function postPlant(payload: {
@@ -657,45 +597,6 @@ export default function PlantPage() {
                 </div>
               </div>
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1">
-              직접 위치 지정 (선택)
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <input
-                  type="number"
-                  step="0.000001"
-                  placeholder="위도 (33~39)"
-                  className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-rose-100 focus:border-rose-100 outline-none text-sm"
-                  value={latInput}
-                  onChange={(e) => setLatInput(e.target.value)}
-                />
-              </div>
-              <div>
-                <input
-                  type="number"
-                  step="0.000001"
-                  placeholder="경도 (124~132)"
-                  className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-rose-100 focus:border-rose-100 outline-none text-sm"
-                  value={lngInput}
-                  onChange={(e) => setLngInput(e.target.value)}
-                />
-              </div>
-            </div>
-            <p className="text-xs text-ink/60 mt-1">
-              위도와 경도를 입력하여 정확한 위치에 꽃을 심을 수 있습니다.
-            </p>
-            <button
-              className="w-full mt-2 py-2 rounded-lg border border-gray-300 font-medium bg-white cursor-pointer hover:bg-gray-50 transition-colors"
-              onClick={handleLatLngInput}
-            >
-              좌표로 위치 지정
-            </button>
-            <p className="mt-1 text-xs text-rose-600">
-              {latLngError || <br />}
-            </p>
           </div>
         </div>
       </div>
