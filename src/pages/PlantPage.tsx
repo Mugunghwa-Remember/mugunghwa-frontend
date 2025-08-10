@@ -228,7 +228,8 @@ export default function PlantPage() {
 
     // Add tile layer (한글 지명 포함)
     L.tileLayer(
-      "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      // "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
       {
         attribution: "",
         crossOrigin: true,
