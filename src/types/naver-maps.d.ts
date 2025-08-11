@@ -3,6 +3,13 @@ declare namespace naver.maps {
     constructor(elementId: string, options: MapOptions);
     setCenter(center: LatLng, animated?: boolean): void;
     panTo(center: LatLng, options?: PanOptions): void;
+    getZoom(): number;
+    setZoom(zoom: number): void;
+    getBounds(): {
+      _min: { _lat: number; _lng: number };
+      _max: { _lat: number; _lng: number };
+    };
+    zoomBy(delta: number, center?: LatLng, animated?: boolean): void;
   }
 
   class LatLng {
@@ -57,12 +64,12 @@ declare namespace naver.maps {
     function addListener(
       instance: Map,
       eventName: string,
-      listener: (e: any) => void
+      listener: (e: { coord: { lat: () => number; lng: () => number } }) => void
     ): void;
     function addListener(
       instance: Marker,
       eventName: string,
-      listener: (e: any) => void
+      listener: (e: unknown) => void
     ): void;
   }
 }

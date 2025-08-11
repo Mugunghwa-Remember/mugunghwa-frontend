@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchExistingFlowers } from "../controllers/existingFlowersController";
+import {
+  fetchExistingFlowers,
+  type ExistingFlower,
+} from "../controllers/existingFlowersController";
 import mugunghwaRaw from "../assets/mugunghwa2.svg?raw";
 
 const KOREA_CENTER = [36.013522147, 128.180999088];
@@ -87,7 +90,7 @@ const PlantMap = ({
 
       const newFlowers: naver.maps.Marker[] = [];
 
-      data.flowers.forEach((flower: any) => {
+      data.flowers.forEach((flower: ExistingFlower) => {
         const key = `${flower.latitude},${flower.longitude}`;
 
         if (existingMarkersMap.has(key)) {
@@ -241,24 +244,25 @@ const PlantMap = ({
     });
 
     naver.maps.Event.addListener(newMap, "idle", () => {
-      if (mapRef.current) {
-        const bounds = mapRef.current.getBounds?.();
-        if (bounds) {
-          setZoomData({
-            zoom: mapRef.current.getZoom?.() || 7,
-            minlat: bounds._min._lat,
-            minlng: bounds._min._lng,
-            maxlat: bounds._max._lat,
-            maxlng: bounds._max._lng,
-          });
-        }
+      const map = mapRef.current;
+      if (!map) return;
+
+      const bounds = map.getBounds();
+      if (bounds) {
+        setZoomData({
+          zoom: map.getZoom() || 7,
+          minlat: bounds._min._lat,
+          minlng: bounds._min._lng,
+          maxlat: bounds._max._lat,
+          maxlng: bounds._max._lng,
+        });
       }
     });
 
     if (newMap.getBounds) {
       const bounds = newMap.getBounds();
       setZoomData({
-        zoom: newMap.getZoom?.() || 7,
+        zoom: newMap.getZoom() || 7,
         minlat: bounds._min._lat,
         minlng: bounds._min._lng,
         maxlat: bounds._max._lat,

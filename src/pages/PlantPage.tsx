@@ -255,7 +255,7 @@ export default function PlantPage() {
     seedMockFlowers(1000);
 
     // Handle map clicks with debouncing
-    let clickTimeout: number;
+    let clickTimeout: ReturnType<typeof setTimeout>;
     map.on("click", (e: L.LeafletMouseEvent) => {
       // Clear previous timeout
       clearTimeout(clickTimeout);

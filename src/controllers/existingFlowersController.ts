@@ -1,4 +1,4 @@
-import { flower } from "../pages/IntroPage.css";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Feature, Point } from "geojson";
 
 // 다른 사람이 심은 꽃 데이터 타입
@@ -6,6 +6,7 @@ export interface ExistingFlower {
   id: string;
   name: string;
   message?: string;
+  count: number;
   latitude: number;
   longitude: number;
   plantedAt: string;
@@ -19,8 +20,8 @@ export interface ExistingFlowersData {
   lastUpdated: string;
 }
 
-const LATLNG_SCALE = 0.66;
-const LATLNG_DISTANCE = 111000 * LATLNG_SCALE;
+// const LATLNG_SCALE = 0.66;
+// const LATLNG_DISTANCE = 111000 * LATLNG_SCALE;
 
 const koreaMapBoundary = [
   [31.711077993772918, 124.28475233270295],
@@ -54,10 +55,10 @@ const koreaLandBoundary: [number, number][] = [
   [37.2633653930117, 125.78873367805456], // 굴업도
 ];
 
-const zoomScale = [
-  0, 0, 0, 0, 0, 0, 0, 50000, 30000, 20000, 10000, 5000, 3000, 1000, 500, 300,
-  100, 50,
-];
+// const zoomScale = [
+//   0, 0, 0, 0, 0, 0, 0, 50000, 30000, 20000, 10000, 5000, 3000, 1000, 500, 300,
+//   100, 50,
+// ];
 
 function randBetween(a: number, b: number) {
   return a + Math.random() * (b - a);
@@ -172,6 +173,7 @@ const generateMockExistingFlowers = (count: number): ExistingFlower[] => {
         Math.random() > 0.3
           ? messages[Math.floor(Math.random() * messages.length)]
           : undefined,
+      count: 1,
       latitude: lat,
       longitude: lng,
       plantedAt: new Date(
@@ -247,90 +249,90 @@ export const fetchExistingFlowers = async ({
   console.log(flowers2);
 
   return {
-    flowers: flowers2,
+    flowers: flowers2 as ExistingFlower[],
     totalCount: flowers2?.length ?? 0,
     lastUpdated: new Date().toISOString(),
   };
 
   // 페이지네이션 적용
-  const paginatedFlowers = mockExistingFlowersData.flowers;
+  // const paginatedFlowers = mockExistingFlowersData.flowers;
 
-  const flowers: ExistingFlower[] = [];
+  // const flowers: ExistingFlower[] = [];
 
-  const scale = zoomScale[zoom] / LATLNG_DISTANCE;
+  // const scale = zoomScale[zoom] / LATLNG_DISTANCE;
 
-  const minlatidx = Math.floor((minlat - koreaMapBoundary[0][0]) / scale);
-  const maxlatidx = Math.ceil((maxlat - koreaMapBoundary[0][0]) / scale);
-  const minlngidx = Math.floor((minlng - koreaMapBoundary[0][1]) / scale);
-  const maxlngidx = Math.ceil((maxlng - koreaMapBoundary[0][1]) / scale);
+  // const minlatidx = Math.floor((minlat - koreaMapBoundary[0][0]) / scale);
+  // const maxlatidx = Math.ceil((maxlat - koreaMapBoundary[0][0]) / scale);
+  // const minlngidx = Math.floor((minlng - koreaMapBoundary[0][1]) / scale);
+  // const maxlngidx = Math.ceil((maxlng - koreaMapBoundary[0][1]) / scale);
 
-  const tmp: any = {};
+  // const tmp: any = {};
 
-  mockExistingFlowersData.flowers
-    .filter((flower) => {
-      const latidx = Math.floor(
-        (flower.latitude - koreaMapBoundary[0][0]) / scale
-      );
-      const lngidx = Math.floor(
-        (flower.longitude - koreaMapBoundary[0][1]) / scale
-      );
-      if (
-        latidx >= minlatidx &&
-        latidx < maxlatidx &&
-        lngidx >= minlngidx &&
-        lngidx < maxlngidx
-      )
-        return true;
-      return false;
-    })
-    .forEach((flower) => {
-      const latidx = Math.floor(
-        (flower.latitude - koreaMapBoundary[0][0]) / scale
-      );
-      const lngidx = Math.floor(
-        (flower.longitude - koreaMapBoundary[0][1]) / scale
-      );
+  // mockExistingFlowersData.flowers
+  //   .filter((flower) => {
+  //     const latidx = Math.floor(
+  //       (flower.latitude - koreaMapBoundary[0][0]) / scale
+  //     );
+  //     const lngidx = Math.floor(
+  //       (flower.longitude - koreaMapBoundary[0][1]) / scale
+  //     );
+  //     if (
+  //       latidx >= minlatidx &&
+  //       latidx < maxlatidx &&
+  //       lngidx >= minlngidx &&
+  //       lngidx < maxlngidx
+  //     )
+  //       return true;
+  //     return false;
+  //   })
+  //   .forEach((flower) => {
+  //     const latidx = Math.floor(
+  //       (flower.latitude - koreaMapBoundary[0][0]) / scale
+  //     );
+  //     const lngidx = Math.floor(
+  //       (flower.longitude - koreaMapBoundary[0][1]) / scale
+  //     );
 
-      if (`${latidx},${lngidx}` in tmp) {
-        tmp[`${latidx},${lngidx}`].flowers.push(flower);
-      } else {
-        tmp[`${latidx},${lngidx}`] = {
-          position: [0, 0],
-          flowers: [flower],
-        };
-      }
-    });
+  //     if (`${latidx},${lngidx}` in tmp) {
+  //       tmp[`${latidx},${lngidx}`].flowers.push(flower);
+  //     } else {
+  //       tmp[`${latidx},${lngidx}`] = {
+  //         position: [0, 0],
+  //         flowers: [flower],
+  //       };
+  //     }
+  //   });
 
-  Object.values(tmp).forEach((value, i) => {
-    if (value.flowers.length === 0) return;
-    const [lat, lng] = value.flowers.reduce(
-      (acc, e) => {
-        return [acc[0] + e.latitude, acc[1] + e.longitude];
-      },
-      [0, 0]
-    );
+  // Object.values(tmp).forEach((value, i) => {
+  //   if (value.flowers.length === 0) return;
+  //   const [lat, lng] = value.flowers.reduce(
+  //     (acc, e) => {
+  //       return [acc[0] + e.latitude, acc[1] + e.longitude];
+  //     },
+  //     [0, 0]
+  //   );
 
-    flowers.push({
-      id: `flower_${i + 1}`,
-      name: "test",
-      message: "test",
-      count: value.flowers.length,
-      latitude: lat / value.flowers.length,
-      longitude: lng / value.flowers.length,
-      plantedAt: new Date(
-        Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 최근 30일 내
-      flowerType: "mugunghwa",
-    });
-  });
+  //   flowers.push({
+  //     id: `flower_${i + 1}`,
+  //     name: "test",
+  //     message: "test",
+  //     count: value.flowers.length,
+  //     latitude: lat / value.flowers.length,
+  //     longitude: lng / value.flowers.length,
+  //     plantedAt: new Date(
+  //       Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
+  //     ).toISOString(), // 최근 30일 내
+  //     flowerType: "mugunghwa",
+  //   });
+  // });
 
-  const updatedData: ExistingFlowersData = {
-    flowers: flowers,
-    totalCount: flowers.length,
-    lastUpdated: new Date().toISOString(),
-  };
+  // const updatedData: ExistingFlowersData = {
+  //   flowers: flowers,
+  //   totalCount: flowers.length,
+  //   lastUpdated: new Date().toISOString(),
+  // };
 
-  return updatedData;
+  // return updatedData;
 };
 
 /**

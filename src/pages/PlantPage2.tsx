@@ -8,7 +8,10 @@ export default function PlantPage2() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
-  const [userMarkerData, setUserMarkerData] = useState(null);
+  const [userMarkerData, setUserMarkerData] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [showDonationModal, setShowDonationModal] = useState(false);
   const randomLocationRef = useRef<(() => void) | null>(null);
 
