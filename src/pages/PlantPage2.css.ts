@@ -50,6 +50,13 @@ export const content = style({
   flexDirection: "row",
   gap: "100px",
   width: "100%",
+
+  "@media": {
+    "(max-width: 628px)": {
+      flexDirection: "column-reverse",
+      gap: "24px",
+    },
+  },
 });
 
 export const leftSection = style({
@@ -224,13 +231,94 @@ export const rightSection = style({
 export const mapPlaceholder = style({
   width: "100%",
   height: "100%",
-  backgroundColor: "#e0e0e0",
   borderRadius: "16px",
+  overflow: "hidden",
+});
+
+export const modalOverlay = style({
+  position: "fixed",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: "rgba(0, 0, 0, 0.3)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  zIndex: 1000,
+});
+
+export const modal = style({
+  backgroundColor: "white",
+  borderRadius: "20px",
+  padding: "36px 39px",
+  maxWidth: "500px",
+  width: "100%",
+  textAlign: "center",
+  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.2)",
+  gap: "22px",
+  display: "flex",
+  flexDirection: "column",
+});
+
+export const modalHeader = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "16px",
+});
+
+export const modalTitle = style({
+  fontFamily: vars.fonts.yeongnamnu,
+  fontSize: "28px",
+  fontWeight: "400",
+  color: "rgba(0, 0, 0, 1)",
+});
+
+export const modalDescription = style({
+  fontFamily: vars.fonts.pretendard,
+  fontSize: "20px",
+  color: "rgba(0, 0, 0, 1)",
+  fontWeight: "600",
+});
+
+export const modalActions = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+  alignItems: "center",
+});
+
+export const donationButton = style({
+  backgroundColor: vars.colors.primary,
+  color: "white",
+  border: "none",
+  borderRadius: "12px",
+  padding: "10px",
   fontSize: "18px",
-  color: "rgba(0, 0, 0, 0.5)",
-  fontFamily: vars.fonts.sans,
-  border: "2px dashed rgba(0, 0, 0, 0.2)",
+  fontWeight: "400",
+  fontFamily: vars.fonts.yeongnamnu,
+  cursor: "pointer",
+  transition: "all 0.2s ease",
+  width: "100%",
+
+  ":hover": {
+    backgroundColor: "rgba(216, 73, 63, 0.9)",
+    transform: "translateY(-1px)",
+  },
+});
+
+export const closeButton = style({
+  backgroundColor: "transparent",
+  color: "rgba(117, 117, 117, 1)",
+  border: "none",
+  fontSize: "16px",
+  fontFamily: vars.fonts.pretendard,
+  cursor: "pointer",
+  transition: "color 0.2s ease",
+  borderBottom: "1px solid rgba(135, 135, 135, 1)",
+  width: "fit-content",
+
+  ":hover": {
+    color: vars.colors.ink,
+  },
 });

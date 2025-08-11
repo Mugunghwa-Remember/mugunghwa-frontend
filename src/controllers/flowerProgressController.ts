@@ -5,10 +5,13 @@ export interface FlowerProgressData {
   lastUpdated: string;
 }
 
+const currentCount = Math.floor(Math.random() * 800000);
+const targetCount = 800000;
+
 // 목 데이터
 const mockFlowerProgressData: FlowerProgressData = {
-  currentCount: Math.floor(Math.random() * 800000),
-  targetCount: 800000,
+  currentCount: currentCount,
+  targetCount: targetCount,
   lastUpdated: new Date().toISOString(),
 };
 
