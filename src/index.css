@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./assets/fonts/myyeongnamnu.css";
+@import "./assets/fonts/pretendard.css";
 @source "../index.html";
 @source "./**/*.{ts,tsx,js,jsx,html}";
 
@@ -8,6 +10,8 @@
   --color-paper: #f8f4ed;
   --font-sans: "Noto Sans KR", system-ui, Arial, sans-serif;
   --font-pen: "Nanum Pen Script", cursive;
+  --font-yeongnamnu: "MYYeongnamnu", "Noto Sans KR", system-ui, Arial,
+    sans-serif;
   --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.1);
   --animate-fadeUp: fadeUp 0.6s ease-out;
   --animate-bloom: bloom 0.6s cubic-bezier(0.2, 0.8, 0.2, 1.2);
@@ -133,4 +137,9 @@ body {
     );
   opacity: 0.45;
   mix-blend-mode: multiply;
+}
+
+/* MYYeongnamnu Font Utility Classes */
+.font-yeongnamnu {
+  font-family: var(--font-yeongnamnu);
 }

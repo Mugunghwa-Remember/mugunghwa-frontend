@@ -12,6 +12,13 @@ export default {
       fontFamily: {
         sans: ["Noto Sans KR", "system-ui", "Arial", "sans-serif"],
         pen: ["Nanum Pen Script", "cursive"],
+        yeongnamnu: [
+          "MYYeongnamnu",
+          "Noto Sans KR",
+          "system-ui",
+          "Arial",
+          "sans-serif",
+        ],
       },
       boxShadow: { soft: "0 8px 30px rgba(0,0,0,0.10)" },
       keyframes: {
