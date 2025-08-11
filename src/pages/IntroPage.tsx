@@ -7,7 +7,7 @@ export default function IntroPage() {
   const navigate = useNavigate();
 
   const handleStart = () => {
-    navigate("/plant");
+    navigate("/plant2");
   };
 
   return (
