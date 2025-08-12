@@ -18,19 +18,21 @@ export const progressFillAnimation = keyframes({
 export const progressCard = style({
   background: "rgba(255, 255, 255, 0.9)",
   borderRadius: "20px",
-  padding: "24px 32px",
+  padding: "20px 28px",
   border: "1px solid rgba(250, 207, 203, 1)",
   maxWidth: "580px",
   width: "100%",
   display: "flex",
   flexDirection: "column",
-  gap: "10px",
+  gap: "8px",
   boxSizing: "border-box",
+  height: "130px",
+  justifyContent: "center",
 });
 
 export const progressTitle = style({
   fontFamily: vars.fonts.yeongnamnu,
-  fontSize: "24px",
+  fontSize: "20px",
   fontWeight: "400",
   color: "rgba(0, 0, 0, 1)",
   textAlign: "center",
@@ -39,7 +41,7 @@ export const progressTitle = style({
 export const progressContainer = style({
   display: "flex",
   flexDirection: "column",
-  gap: "8px",
+  gap: "4px",
 });
 
 export const progressInfo = style({
@@ -47,7 +49,7 @@ export const progressInfo = style({
   justifyContent: "space-between",
   alignItems: "center",
   fontFamily: vars.fonts.yeongnamnu,
-  fontSize: "18px",
+  fontSize: "16px",
   padding: "0 8px",
 });
 
@@ -101,12 +103,14 @@ export const loadingState = style({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: "12px",
+  gap: "8px",
+
+  fontSize: "14px",
 });
 
 export const loadingSpinner = style({
-  width: "24px",
-  height: "24px",
+  width: "16px",
+  height: "16px",
   border: "2px solid #f3f3f3",
   borderTop: `2px solid ${vars.colors.primary}`,
   borderRadius: "50%",
@@ -117,7 +121,7 @@ export const errorState = style({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: "12px",
+  gap: "8px",
 });
 
 export const errorMessage = style({
@@ -130,7 +134,7 @@ export const retryButton = style({
   background: vars.colors.primary,
   color: "white",
   border: "none",
-  padding: "8px 16px",
+  padding: "2px 16px",
   borderRadius: "6px",
   fontSize: "14px",
   cursor: "pointer",

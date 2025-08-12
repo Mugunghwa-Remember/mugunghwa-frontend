@@ -8,6 +8,7 @@ export const section = style({
   justifyContent: "center",
   width: "100%",
   height: "100vh",
+  padding: "20px",
 });
 
 export const container = style({
@@ -15,9 +16,8 @@ export const container = style({
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  height: "100vh",
-  gap: "48px",
-  maxWidth: "1040px",
+  gap: "40px",
+  maxWidth: "840px",
   width: "100%",
 });
 
@@ -25,13 +25,13 @@ export const titleContainer = style({
   display: "flex",
   flexDirection: "column",
   alignItems: "flex-start",
-  gap: "16px",
+  gap: "8px",
   width: "100%",
 });
 
 export const title = style({
   fontFamily: vars.fonts.yeongnamnu,
-  fontSize: "40px",
+  fontSize: "36px",
   fontWeight: "400",
   color: vars.colors.ink,
   margin: 0,
@@ -39,7 +39,7 @@ export const title = style({
 
 export const instruction = style({
   fontFamily: vars.fonts.pretendard,
-  fontSize: "24px",
+  fontSize: "20px",
   fontWeight: "600",
   color: "rgba(117, 117, 117, 1)",
   margin: 0,
@@ -48,7 +48,7 @@ export const instruction = style({
 export const content = style({
   display: "flex",
   flexDirection: "row",
-  gap: "100px",
+  gap: "80px",
   width: "100%",
 
   "@media": {
@@ -63,15 +63,15 @@ export const leftSection = style({
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",
-  maxWidth: "360px",
+  maxWidth: "340px",
   width: "100%",
-  gap: "20px",
+  gap: "24px",
 });
 
 export const formContainer = style({
   display: "flex",
   flexDirection: "column",
-  gap: "20px",
+  gap: "24px",
   width: "100%",
 });
 
@@ -92,7 +92,7 @@ export const inputGroup = style({
 
 export const label = style({
   fontFamily: vars.fonts.pretendard,
-  fontSize: "20px",
+  fontSize: "16px",
   fontWeight: "600",
   color: vars.colors.ink,
 });
@@ -101,7 +101,7 @@ export const nameInput = style({
   padding: "12px 16px",
   border: "1px solid rgba(194, 194, 194, 1)",
   borderRadius: "8px",
-  fontSize: "18px",
+  fontSize: "16px",
   fontFamily: vars.fonts.pretendard,
   fontWeight: "400",
   backgroundColor: "white",
@@ -123,15 +123,15 @@ export const nameInputError = style({
   fontFamily: vars.fonts.pretendard,
   padding: "0 8px",
   color: vars.colors.primary,
-  fontWeight: "400",
-  fontSize: "16px",
+  fontWeight: "500",
+  fontSize: "14px",
 });
 
 export const messageInput = style({
   padding: "12px 16px",
   border: "1px solid rgba(194, 194, 194, 1)",
   borderRadius: "8px",
-  fontSize: "18px",
+  fontSize: "16px",
   fontFamily: vars.fonts.yeongnamnu,
   fontWeight: "400",
   backgroundColor: "white",
@@ -139,7 +139,7 @@ export const messageInput = style({
   minHeight: "80px",
   transition: "all 0.1s ease",
   width: "100%",
-  height: "160px",
+  height: "140px",
 
   ":focus": {
     outline: "none",
@@ -154,11 +154,11 @@ export const messageInput = style({
 
 export const buttonGroup = style({
   display: "flex",
-  gap: "10px",
+  gap: "16px",
 });
 
 export const plantButton = style({
-  flex: "1",
+  width: "100%",
   padding: "16px 24px",
   backgroundColor: "rgba(255, 230, 239, 1)",
   border: `1px solid ${vars.colors.primary}`,
@@ -190,7 +190,7 @@ export const plantButton = style({
 });
 
 export const randomButton = style({
-  flex: "1",
+  width: "100%",
   padding: "16px 24px",
   backgroundColor: vars.colors.primary,
   color: "white",
@@ -214,7 +214,7 @@ export const randomButton = style({
 
 export const bottomInstruction = style({
   fontFamily: vars.fonts.pretendard,
-  fontSize: "18px",
+  fontSize: "16px",
   color: "rgba(117, 117, 117, 1)",
   fontWeight: "600",
   margin: 0,
@@ -269,14 +269,14 @@ export const modalHeader = style({
 
 export const modalTitle = style({
   fontFamily: vars.fonts.yeongnamnu,
-  fontSize: "28px",
+  fontSize: "24px",
   fontWeight: "400",
   color: "rgba(0, 0, 0, 1)",
 });
 
 export const modalDescription = style({
   fontFamily: vars.fonts.pretendard,
-  fontSize: "20px",
+  fontSize: "18px",
   color: "rgba(0, 0, 0, 1)",
   fontWeight: "600",
 });
@@ -311,7 +311,7 @@ export const closeButton = style({
   backgroundColor: "transparent",
   color: "rgba(117, 117, 117, 1)",
   border: "none",
-  fontSize: "16px",
+  fontSize: "14px",
   fontFamily: vars.fonts.pretendard,
   cursor: "pointer",
   transition: "color 0.2s ease",

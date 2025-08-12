@@ -16,6 +16,7 @@ export const introSection = style({
   backgroundPosition: "center",
   backgroundRepeat: "no-repeat",
   overflow: "hidden",
+  padding: "20px",
 });
 
 export const introContainer = style({
@@ -39,13 +40,13 @@ export const titleContainer = style({
 
 export const title = style({
   fontFamily: vars.fonts.yeongnamnu,
-  fontSize: "32px",
+  fontSize: "40px",
   fontWeight: "400",
   color: vars.colors.primary,
   whiteSpace: "nowrap",
   margin: 0,
   "@media": {
-    "screen and (min-width: 640px)": {
+    "screen and (max-width: 640px)": {
       fontSize: "52px",
     },
   },
@@ -53,19 +54,19 @@ export const title = style({
 
 export const subtitle = style({
   fontFamily: vars.fonts.yeongnamnu,
-  fontSize: "18px",
+  fontSize: "24px",
   fontWeight: "400",
   margin: 0,
   color: vars.colors.ink,
   "@media": {
-    "screen and (min-width: 640px)": {
+    "screen and (max-width: 640px)": {
       fontSize: "28px",
     },
   },
 });
 
 export const flower = style({
-  width: "350px",
+  width: "300px",
   height: "auto",
   aspectRatio: "1 / 1",
 });
@@ -113,7 +114,7 @@ export const startButton = style({
 });
 
 export const footerText = style({
-  fontSize: "20px",
+  fontSize: "16px",
   fontWeight: "600",
   color: "rgba(117, 117, 117, 1)",
   fontFamily: vars.fonts.pretendard,

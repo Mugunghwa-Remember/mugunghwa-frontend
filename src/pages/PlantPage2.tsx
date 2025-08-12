@@ -13,9 +13,35 @@ export default function PlantPage2() {
     lng: number;
   } | null>(null);
   const [showDonationModal, setShowDonationModal] = useState(false);
+  const [nameError, setNameError] = useState("");
   const randomLocationRef = useRef<(() => void) | null>(null);
 
+  // 이름 유효성 검사
+  const validateName = (name: string): string => {
+    if (!name.trim()) {
+      return "이름을 입력해주세요";
+    }
+    if (name.trim().length < 2) {
+      return "이름은 2글자 이상 입력해주세요";
+    }
+    if (name.trim().length > 15) {
+      return "이름은 15글자 이하로 입력해주세요";
+    }
+    // 특수문자나 숫자만 있는 경우 체크
+    // if (!/^[가-힣a-zA-Z0-9\s]+$/.test(name.trim())) {
+    //   return "이름은 한글, 영문, 숫자, 공백만 입력 가능합니다";
+    // }
+    return "";
+  };
+
   const handlePlant = () => {
+    // 이름 유효성 검사
+    const nameValidationError = validateName(name);
+    if (nameValidationError) {
+      setNameError(nameValidationError);
+      return;
+    }
+
     if (!(name.trim() && userMarkerData)) return;
 
     console.log("Planting flower:", {
@@ -107,7 +133,7 @@ export default function PlantPage2() {
                     minLength={2}
                   />
                   <div className={styles.nameInputError}>
-                    이름을 입력해주세요
+                    {nameError || <br />}
                   </div>
                 </div>
 
