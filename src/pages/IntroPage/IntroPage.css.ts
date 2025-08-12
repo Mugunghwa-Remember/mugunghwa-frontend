@@ -1,7 +1,7 @@
 import { style } from "@vanilla-extract/css";
-import { vars } from "../styles/vars.css";
-import { fadeUp } from "../styles/animations.css";
-import backgroundImage from "../assets/index_background.png";
+import { vars } from "../../styles/vars.css";
+import { fadeUp } from "../../styles/animations.css";
+import backgroundImage from "../../assets/index_background.png";
 
 // Base styles
 export const introSection = style({
@@ -28,6 +28,12 @@ export const introContainer = style({
   maxWidth: "840px",
   width: "100%",
   animation: `${fadeUp} 0.8s ease-out`,
+
+  "@media": {
+    "screen and (max-width: 768px)": {
+      gap: "20px",
+    },
+  },
 });
 
 export const titleContainer = style({
@@ -45,9 +51,10 @@ export const title = style({
   color: vars.colors.primary,
   whiteSpace: "nowrap",
   margin: 0,
+
   "@media": {
-    "screen and (max-width: 640px)": {
-      fontSize: "52px",
+    "screen and (max-width: 768px)": {
+      fontSize: "32px",
     },
   },
 });
@@ -58,9 +65,11 @@ export const subtitle = style({
   fontWeight: "400",
   margin: 0,
   color: vars.colors.ink,
+  whiteSpace: "nowrap",
+
   "@media": {
-    "screen and (max-width: 640px)": {
-      fontSize: "28px",
+    "screen and (max-width: 768px)": {
+      fontSize: "20px",
     },
   },
 });
@@ -69,6 +78,12 @@ export const flower = style({
   width: "300px",
   height: "auto",
   aspectRatio: "1 / 1",
+
+  "@media": {
+    "screen and (max-width: 768px)": {
+      width: "250px",
+    },
+  },
 });
 
 export const descriptionContainer = style({
@@ -85,6 +100,22 @@ export const description = style({
   fontWeight: "400",
   color: vars.colors.ink,
   margin: 0,
+
+  "@media": {
+    "screen and (max-width: 768px)": {
+      fontSize: "18px",
+    },
+  },
+});
+
+export const mobileBreak = style({
+  display: "none",
+
+  "@media": {
+    "screen and (max-width: 768px)": {
+      display: "inline",
+    },
+  },
 });
 
 export const buttonContainer = style({
@@ -94,6 +125,12 @@ export const buttonContainer = style({
   gap: "16px",
   width: "100%",
   padding: "0 24px",
+
+  "@media": {
+    "screen and (max-width: 768px)": {
+      padding: "0",
+    },
+  },
 });
 
 export const startButton = style({
@@ -111,6 +148,12 @@ export const startButton = style({
     transform: "translateY(-1px)",
     boxShadow: "0 10px 30px rgba(216, 73, 63, 0.3)",
   },
+
+  "@media": {
+    "screen and (max-width: 768px)": {
+      fontSize: "16px",
+    },
+  },
 });
 
 export const footerText = style({
@@ -118,6 +161,12 @@ export const footerText = style({
   fontWeight: "600",
   color: "rgba(117, 117, 117, 1)",
   fontFamily: vars.fonts.pretendard,
+
+  "@media": {
+    "screen and (max-width: 768px)": {
+      fontSize: "14px",
+    },
+  },
 });
 
 // Animation

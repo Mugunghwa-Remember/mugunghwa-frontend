@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import "./index.css";
-import IntroPage from "./pages/IntroPage";
+import IntroPage from "./pages/IntroPage/IntroPage";
 import PlantPage from "./pages/PlantPage";
 import PlantPage2 from "./pages/PlantPage2";
 import ExplorePage from "./pages/ExplorePage";

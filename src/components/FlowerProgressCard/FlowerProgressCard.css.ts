@@ -28,6 +28,13 @@ export const progressCard = style({
   boxSizing: "border-box",
   height: "130px",
   justifyContent: "center",
+
+  "@media": {
+    "screen and (max-width: 768px)": {
+      padding: "20px 16px",
+      height: "110px",
+    },
+  },
 });
 
 export const progressTitle = style({
@@ -36,6 +43,12 @@ export const progressTitle = style({
   fontWeight: "400",
   color: "rgba(0, 0, 0, 1)",
   textAlign: "center",
+
+  "@media": {
+    "screen and (max-width: 768px)": {
+      fontSize: "18px",
+    },
+  },
 });
 
 export const progressContainer = style({

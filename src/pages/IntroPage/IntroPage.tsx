@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import indexImage from "../assets/index.png";
+import indexImage from "../../assets/index.png";
 import * as styles from "./IntroPage.css";
-import FlowerProgressCard from "../components/FlowerProgressCard";
+import FlowerProgressCard from "../../components/FlowerProgressCard";
 
 export default function IntroPage() {
   const navigate = useNavigate();
@@ -30,8 +30,9 @@ export default function IntroPage() {
 
         <div className={styles.descriptionContainer}>
           <p className={styles.description}>
-            감사의 마음을 당신의 이름으로 심어주세요! 대한민국 실시간 지도에
-            꽃이 피어납니다.
+            감사의 마음을 당신의 이름으로 심어주세요!{" "}
+            <br className={styles.mobileBreak} />
+            대한민국 실시간 지도에 꽃이 피어납니다.
           </p>
           <div className={styles.buttonContainer}>
             <button className={styles.startButton} onClick={handleStart}>

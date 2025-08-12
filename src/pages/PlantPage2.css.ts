@@ -3,22 +3,33 @@ import { vars } from "../styles/vars.css";
 
 export const section = style({
   display: "flex",
-  textAlign: "center",
+  flexDirection: "column",
   alignItems: "center",
-  justifyContent: "center",
   width: "100%",
-  height: "100vh",
+  height: "100dvh",
   padding: "20px",
+  overflowY: "scroll",
+  boxSizing: "border-box",
 });
 
 export const container = style({
   display: "flex",
   flexDirection: "column",
-  alignItems: "center",
   justifyContent: "center",
+  alignItems: "center",
+  height: "100%",
+  boxSizing: "border-box",
+
   gap: "40px",
   maxWidth: "840px",
   width: "100%",
+
+  "@media": {
+    "(max-width: 1280px)": {
+      maxWidth: "600px",
+      justifyContent: "flex-start",
+    },
+  },
 });
 
 export const titleContainer = style({
@@ -27,6 +38,7 @@ export const titleContainer = style({
   alignItems: "flex-start",
   gap: "8px",
   width: "100%",
+  // height: "200dvh",
 });
 
 export const title = style({
@@ -52,9 +64,14 @@ export const content = style({
   width: "100%",
 
   "@media": {
-    "(max-width: 628px)": {
+    "(max-width: 768px)": {
       flexDirection: "column-reverse",
       gap: "24px",
+    },
+
+    "(max-width: 1280px)": {
+      flexDirection: "column-reverse",
+      gap: "48px",
     },
   },
 });
@@ -66,6 +83,12 @@ export const leftSection = style({
   maxWidth: "340px",
   width: "100%",
   gap: "24px",
+
+  "@media": {
+    "(max-width: 1280px)": {
+      maxWidth: "100%",
+    },
+  },
 });
 
 export const formContainer = style({
@@ -73,6 +96,7 @@ export const formContainer = style({
   flexDirection: "column",
   gap: "24px",
   width: "100%",
+  alignItems: "center",
 });
 
 export const inputContainer = style({
@@ -155,6 +179,7 @@ export const messageInput = style({
 export const buttonGroup = style({
   display: "flex",
   gap: "16px",
+  width: "100%",
 });
 
 export const plantButton = style({
@@ -233,6 +258,12 @@ export const mapPlaceholder = style({
   height: "100%",
   borderRadius: "16px",
   overflow: "hidden",
+
+  "@media": {
+    "(max-width: 1280px)": {
+      height: "600px",
+    },
+  },
 });
 
 export const modalOverlay = style({

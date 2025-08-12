@@ -137,7 +137,6 @@ export default function PlantPage2() {
                   </div>
                 </div>
 
-                {/* 감사 편지 입력 */}
                 <div className={styles.inputGroup}>
                   <label htmlFor="message" className={styles.label}>
                     감사 편지 (선택)
@@ -154,10 +153,8 @@ export default function PlantPage2() {
                 </div>
               </div>
 
-              {/* 전체 헌화 현황 */}
               <FlowerProgressCard />
 
-              {/* 버튼들 */}
               <div className={styles.buttonGroup}>
                 <button
                   onClick={handlePlant}
@@ -180,7 +177,7 @@ export default function PlantPage2() {
               <br />이 위치에 심기 버튼을 눌러 확정하세요!
             </p>
           </div>
-          {/* 오른쪽 섹션 - 지도 */}
+
           <div className={styles.rightSection}>
             <div className={styles.mapPlaceholder}>
               <PlantMap

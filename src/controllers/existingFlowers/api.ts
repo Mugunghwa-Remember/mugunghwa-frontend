@@ -62,3 +62,11 @@ export const fetchExistingFlowers = async () => {
     throw new Error("알 수 없는 오류가 발생했습니다.");
   }
 };
+
+export const fetchExistingFlower = async (flowerId: string) => {
+  return flowerId;
+};
+
+export const fetchExistingFlowerGroup = async (flowerId: string) => {
+  return flowerId;
+};
