@@ -193,6 +193,55 @@ const mockExistingFlowersData: ExistingFlowersData = {
   lastUpdated: new Date().toISOString(),
 };
 
+const MAX_ZOOM = 17;
+
+const points: Feature<Point>[] = mockExistingFlowersData.flowers.map((d) => ({
+  type: "Feature",
+  properties: d, // 필요한 속성
+  geometry: { type: "Point", coordinates: [d.longitude, d.latitude] },
+}));
+
+const index = new Supercluster({
+  radius: 128, // 클러스터 반경(px). 밀도 표현 강도
+  maxZoom: 17, // 데이터 클러스터링 최대 줌
+  minPoints: 2, // 몇 개부터 클러스터로 묶을지
+}).load(points as any);
+
+type FLOWER_TYPE = "FLOWER" | "CLUSER" | "LEAF";
+export interface ClusteredExistingFlowersFlower {
+  name: string;
+  message: string;
+  plantedAt: Date;
+}
+export interface ClusteredExistingFlowersCluster {
+  count: number;
+}
+
+export interface ClusteredExistingFlowersLeaf {
+  count: number;
+  children: (
+    | ClusteredExistingFlowersFlower
+    | ClusteredExistingFlowersCluster
+  )[];
+}
+
+export interface ClusteredExistingFlowers {
+  id: string;
+  type: FLOWER_TYPE;
+  latitude: number;
+  longitude: number;
+  data:
+    | ClusteredExistingFlowersFlower
+    | ClusteredExistingFlowersCluster
+    | ClusteredExistingFlowersLeaf;
+}
+
+interface ClusteredExistingFlowersData {
+  flowers: ClusteredExistingFlowers[];
+  totalCount: number;
+  lastUpdated: string;
+}
+
 import Supercluster from "supercluster";
 /**
  * 다른 사람이 심은 꽃 목록을 가져오는 함수
@@ -212,127 +261,88 @@ export const fetchExistingFlowers = async ({
   minlng: number;
   maxlat: number;
   maxlng: number;
-}): Promise<ExistingFlowersData> => {
+}): Promise<ClusteredExistingFlowersData> => {
   // 실제 API 호출을 시뮬레이션하기 위한 지연
   await new Promise((resolve) => setTimeout(resolve, 300));
-
-  const points: Feature<Point>[] = mockExistingFlowersData.flowers.map((d) => ({
-    type: "Feature",
-    properties: { id: d.id }, // 필요한 속성
-    geometry: { type: "Point", coordinates: [d.longitude, d.latitude] },
-  }));
-
-  const index = new Supercluster({
-    radius: 128, // 클러스터 반경(px). 밀도 표현 강도
-    maxZoom: 18, // 데이터 클러스터링 최대 줌
-    minPoints: 2, // 몇 개부터 클러스터로 묶을지
-  }).load(points as any);
 
   const flowerCluster = index.getClusters(
     [minlng, minlat, maxlng, maxlat],
     zoom
   );
-  console.log(flowerCluster);
 
-  const flowers2 = flowerCluster.map((e, i) => ({
-    id: `flower_${i + 1}`,
-    name: "test",
-    message: "test",
-    count: e.properties.point_count,
-    latitude: e.geometry.coordinates[1],
-    longitude: e.geometry.coordinates[0],
-    plantedAt: new Date(
-      Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
-    ).toISOString(), // 최근 30일 내
-    flowerType: "mugunghwa",
-  }));
-  console.log(flowers2);
+  const flowers: ClusteredExistingFlowers[] = flowerCluster.map((e) => {
+    const type = e.properties.point_count
+      ? e.properties.point_count <= 10 || zoom === MAX_ZOOM
+        ? "LEAF"
+        : "CLUSER"
+      : "FLOWER";
+
+    if (type === "FLOWER")
+      return {
+        id: `flower_${e.properties.id}`,
+        type: "FLOWER",
+        latitude: e.geometry.coordinates[1],
+        longitude: e.geometry.coordinates[0],
+        data: {
+          name: e.properties.name,
+          message: e.properties.message,
+          plantedAt: e.properties.plantedAt,
+        },
+      } as ClusteredExistingFlowers;
+
+    if (type === "CLUSER")
+      return {
+        id: `cluster_${e.properties.cluster_id}`,
+        type: "CLUSER",
+        latitude: e.geometry.coordinates[1],
+        longitude: e.geometry.coordinates[0],
+        data: {
+          count: e.properties.point_count,
+        },
+      } as ClusteredExistingFlowers;
+
+    return {
+      id: `leaf_${e.properties.id}`,
+      type: "LEAF",
+      latitude: e.geometry.coordinates[1],
+      longitude: e.geometry.coordinates[0],
+      data: {
+        count: e.properties.point_count,
+        children: index.getChildren(e.properties.cluster_id).map((e) => {
+          const type = e.properties.point_count ? "CLUSER" : "FLOWER";
+          if (type === "FLOWER")
+            return {
+              id: `flower_${e.properties.id}`,
+              type: "FLOWER",
+              latitude: e.geometry.coordinates[1],
+              longitude: e.geometry.coordinates[0],
+              data: {
+                name: e.properties.name,
+                message: e.properties.message,
+                plantedAt: e.properties.plantedAt,
+              },
+            };
+          return {
+            id: `cluster_${e.properties.cluster_id}`,
+            type: "CLUSER",
+            latitude: e.geometry.coordinates[1],
+            longitude: e.geometry.coordinates[0],
+            data: {
+              count: e.properties.point_count,
+            },
+          };
+        }),
+        latitude: e.geometry.coordinates[1],
+        longitude: e.geometry.coordinates[0],
+      },
+    } as ClusteredExistingFlowers;
+  });
 
   return {
-    flowers: flowers2 as ExistingFlower[],
-    totalCount: flowers2?.length ?? 0,
+    flowers,
+    totalCount: flowers?.length ?? 0,
     lastUpdated: new Date().toISOString(),
   };
-
-  // 페이지네이션 적용
-  // const paginatedFlowers = mockExistingFlowersData.flowers;
-
-  // const flowers: ExistingFlower[] = [];
-
-  // const scale = zoomScale[zoom] / LATLNG_DISTANCE;
-
-  // const minlatidx = Math.floor((minlat - koreaMapBoundary[0][0]) / scale);
-  // const maxlatidx = Math.ceil((maxlat - koreaMapBoundary[0][0]) / scale);
-  // const minlngidx = Math.floor((minlng - koreaMapBoundary[0][1]) / scale);
-  // const maxlngidx = Math.ceil((maxlng - koreaMapBoundary[0][1]) / scale);
-
-  // const tmp: any = {};
-
-  // mockExistingFlowersData.flowers
-  //   .filter((flower) => {
-  //     const latidx = Math.floor(
-  //       (flower.latitude - koreaMapBoundary[0][0]) / scale
-  //     );
-  //     const lngidx = Math.floor(
-  //       (flower.longitude - koreaMapBoundary[0][1]) / scale
-  //     );
-  //     if (
-  //       latidx >= minlatidx &&
-  //       latidx < maxlatidx &&
-  //       lngidx >= minlngidx &&
-  //       lngidx < maxlngidx
-  //     )
-  //       return true;
-  //     return false;
-  //   })
-  //   .forEach((flower) => {
-  //     const latidx = Math.floor(
-  //       (flower.latitude - koreaMapBoundary[0][0]) / scale
-  //     );
-  //     const lngidx = Math.floor(
-  //       (flower.longitude - koreaMapBoundary[0][1]) / scale
-  //     );
-
-  //     if (`${latidx},${lngidx}` in tmp) {
-  //       tmp[`${latidx},${lngidx}`].flowers.push(flower);
-  //     } else {
-  //       tmp[`${latidx},${lngidx}`] = {
-  //         position: [0, 0],
-  //         flowers: [flower],
-  //       };
-  //     }
-  //   });
-
-  // Object.values(tmp).forEach((value, i) => {
-  //   if (value.flowers.length === 0) return;
-  //   const [lat, lng] = value.flowers.reduce(
-  //     (acc, e) => {
-  //       return [acc[0] + e.latitude, acc[1] + e.longitude];
-  //     },
-  //     [0, 0]
-  //   );
-
-  //   flowers.push({
-  //     id: `flower_${i + 1}`,
-  //     name: "test",
-  //     message: "test",
-  //     count: value.flowers.length,
-  //     latitude: lat / value.flowers.length,
-  //     longitude: lng / value.flowers.length,
-  //     plantedAt: new Date(
-  //       Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
-  //     ).toISOString(), // 최근 30일 내
-  //     flowerType: "mugunghwa",
-  //   });
-  // });
-
-  // const updatedData: ExistingFlowersData = {
-  //   flowers: flowers,
-  //   totalCount: flowers.length,
-  //   lastUpdated: new Date().toISOString(),
-  // };
-
-  // return updatedData;
 };
 
 /**

@@ -25,6 +25,7 @@ export const progressCard = style({
   display: "flex",
   flexDirection: "column",
   gap: "10px",
+  boxSizing: "border-box",
 });
 
 export const progressTitle = style({

@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import {
   fetchExistingFlowers,
+  type ClusteredExistingFlowers,
+  type ClusteredExistingFlowersCluster,
+  type ClusteredExistingFlowersFlower,
+  type ClusteredExistingFlowersLeaf,
   type ExistingFlower,
 } from "../controllers/existingFlowersController";
 import mugunghwaRaw from "../assets/mugunghwa2.svg?raw";
@@ -30,6 +34,12 @@ const PlantMap = ({
   const mapRef = useRef<naver.maps.Map | null>(null);
   const userMarkerRef = useRef<naver.maps.Marker | null>(null);
   const existingFlowersRef = useRef<naver.maps.Marker[]>([]);
+  const SubFlowerRef = useRef<{
+    size: number;
+    parent: naver.maps.Marker;
+    childMarkers: naver.maps.Marker[];
+    childLines: naver.maps.Polyline[];
+  } | null>(null);
 
   const [zoomData, setZoomData] = useState<{
     zoom: number;
@@ -49,29 +59,67 @@ const PlantMap = ({
     mapDataControl: false,
   };
 
-  function buildMugunghwaSVGHTML(size = 46) {
-    const gid = "mg" + Math.random().toString(36).slice(2, 8);
-    let svg = mugunghwaRaw.replaceAll("hp2", `${gid}`);
-    svg = svg.replace("<svg ", `<svg width="${size}" height="${size}" `);
-    return `<div class="bloom">${svg}</div>`;
-  }
+  const mugunghwaSVGHTML = mugunghwaRaw.replace(
+    "<svg ",
+    `<svg class="bloom" width="100%" height="100%" `
+  );
 
-  function clusterSize(count: number, zoom = 6) {
-    const MIN = 32;
-    const MAX = 128;
-    const REF = 400;
-    const t = Math.min(1, Math.log10(count) / Math.log10(REF));
-    let size = MIN + (MAX - MIN) * t;
-    const zoomScale = 0.9 + (zoom - 7) * 0.08;
-    size *= Math.max(0.8, Math.min(1.5, zoomScale));
+  function clusterSize(count: number, zoom = 6, maxCount: number) {
+    const MIN = 42;
+    const MAX = 72;
+    const REF = maxCount;
+    const t = Math.min(1, REF === 1 ? 0 : Math.log10(count) / Math.log10(REF));
+    const size = MIN + (MAX - MIN) * t;
     return Math.round(size);
   }
+
+  const getFlowerHTML = (count: number, size: number) => {
+    const rotate = Math.random() * 360;
+
+    const html = `
+    <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+      <div class="cluster" style="position: absolute; width:${size}px;height:${size}px;">
+        <div style="transform: rotate(${rotate}deg);">
+          ${mugunghwaSVGHTML}
+        </div>
+        ${count == 1 ? "" : `<div class="cluster-num">${count}</div>`}
+      </div>
+    </div>`;
+
+    return html;
+  };
 
   const resetExistingFlowers = () => {
     existingFlowersRef.current.forEach((flower) => {
       flower.setMap(null);
     });
     existingFlowersRef.current = [];
+  };
+
+  const resetSubFlower = () => {
+    if (!SubFlowerRef.current) return;
+    const subFlower = SubFlowerRef.current;
+
+    const { size, parent, childMarkers, childLines } = subFlower;
+
+    childMarkers.forEach((marker) => {
+      marker.setMap(null);
+    });
+    subFlower.childMarkers = [];
+    childLines.forEach((line) => {
+      line.setMap(null);
+    });
+    subFlower.childLines = [];
+
+    const html = parent.getIcon()?.content;
+    if (!html) return;
+
+    parent.setIcon({
+      content: html.replace('class="cluster opacity-50"', 'class="cluster"'),
+      size: new naver.maps.Size(size, size),
+      anchor: new naver.maps.Point(0, 0),
+    });
+    SubFlowerRef.current = null;
   };
 
   useEffect(() => {
@@ -90,38 +138,169 @@ const PlantMap = ({
 
       const newFlowers: naver.maps.Marker[] = [];
 
-      data.flowers.forEach((flower: ExistingFlower) => {
+      const maxCount = Math.max(
+        ...data.flowers.map((flower) =>
+          flower.type === "CLUSER"
+            ? (flower.data as ClusteredExistingFlowersCluster).count
+            : flower.type === "LEAF"
+            ? (flower.data as ClusteredExistingFlowersLeaf).count
+            : 1
+        )
+      );
+
+      data.flowers.forEach((flower: ClusteredExistingFlowers) => {
         const key = `${flower.latitude},${flower.longitude}`;
 
         if (existingMarkersMap.has(key)) {
           const existingMarker = existingMarkersMap.get(key)!;
           newFlowers.push(existingMarker);
           existingMarkersMap.delete(key);
-        } else {
-          const size = clusterSize(flower.count, map.getZoom() || 7);
-          const html = `<div class="relative" style="width:${size}px;height:${size}px">${buildMugunghwaSVGHTML(
-            size
-          )}<div class="cluster-num">${flower.count}</div></div>`;
+
+          return;
+        }
+
+        if (flower.type === "CLUSER") {
+          const data = flower.data as ClusteredExistingFlowersCluster;
+
+          const size = clusterSize(data.count, map.getZoom() || 7, maxCount);
+          const html = getFlowerHTML(data.count, size);
 
           const marker = new naver.maps.Marker({
             position: new naver.maps.LatLng(flower.latitude, flower.longitude),
             map: map,
             icon: {
               content: html,
-              size: new naver.maps.Size(16, 16),
-              anchor: new naver.maps.Point(8, 8),
+              size: new naver.maps.Size(size, size),
+              anchor: new naver.maps.Point(0, 0),
             },
           });
 
           naver.maps.Event.addListener(marker, "click", () => {
             const map = mapRef.current;
             if (!map) return;
+
+            resetSubFlower();
             resetExistingFlowers();
             const center = new naver.maps.LatLng(
               flower.latitude,
               flower.longitude
             );
             map.zoomBy(1, center, true);
+          });
+
+          newFlowers.push(marker);
+        }
+
+        if (flower.type === "LEAF") {
+          const data = flower.data as ClusteredExistingFlowersLeaf;
+
+          const size = clusterSize(data.count, map.getZoom() || 7, maxCount);
+          const html = getFlowerHTML(data.count, size);
+
+          const marker = new naver.maps.Marker({
+            position: new naver.maps.LatLng(flower.latitude, flower.longitude),
+            map: map,
+            icon: {
+              content: html,
+              size: new naver.maps.Size(size, size),
+              anchor: new naver.maps.Point(0, 0),
+            },
+          });
+
+          naver.maps.Event.addListener(marker, "click", () => {
+            const map = mapRef.current;
+            if (!map) return;
+
+            resetSubFlower();
+
+            const html = marker.getIcon().content;
+            const enabled = html.indexOf('class="cluster opacity-50"') == -1;
+
+            smoothMoveTo(flower.latitude, flower.longitude);
+            marker.setIcon({
+              content: enabled
+                ? html.replace('class="cluster"', 'class="cluster opacity-50"')
+                : html.replace('class="cluster opacity-50"', 'class="cluster"'),
+              size: new naver.maps.Size(size, size),
+              anchor: new naver.maps.Point(0, 0),
+            });
+
+            if (enabled) {
+              SubFlowerRef.current = {
+                size: size,
+                parent: marker,
+                childMarkers: [],
+                childLines: [],
+              };
+
+              const childMarkers = [];
+              const childLines = [];
+              data.children.forEach((child) => {
+                const childLine = new naver.maps.Polyline({
+                  map: map,
+                  path: [
+                    new naver.maps.LatLng(flower.latitude, flower.longitude),
+                    new naver.maps.LatLng(child.latitude, child.longitude),
+                  ],
+                  strokeColor: "#000",
+                  strokeWeight: 2,
+                  strokeOpacity: 0.5,
+                });
+
+                const count =
+                  child.type === "CLUSER"
+                    ? (child.data as ClusteredExistingFlowersCluster).count
+                    : 1;
+                const size = clusterSize(count, map.getZoom() || 7, maxCount);
+                const html = getFlowerHTML(count, size);
+
+                const childMarker = new naver.maps.Marker({
+                  position: new naver.maps.LatLng(
+                    child.latitude,
+                    child.longitude
+                  ),
+                  map: map,
+                  icon: {
+                    content: html,
+                    size: new naver.maps.Size(size, size),
+                    anchor: new naver.maps.Point(0, 0),
+                  },
+                });
+
+                childMarkers.push(childMarker);
+                childLines.push(childLine);
+              });
+
+              SubFlowerRef.current.childMarkers = childMarkers;
+              SubFlowerRef.current.childLines = childLines;
+            }
+          });
+
+          newFlowers.push(marker);
+        }
+
+        if (flower.type === "FLOWER") {
+          const data = flower.data as ClusteredExistingFlowersFlower;
+
+          const size = clusterSize(1, map.getZoom() || 7, maxCount);
+          const html = getFlowerHTML(1, size);
+
+          const marker = new naver.maps.Marker({
+            position: new naver.maps.LatLng(flower.latitude, flower.longitude),
+            map: map,
+            icon: {
+              content: html,
+              size: new naver.maps.Size(size, size),
+              anchor: new naver.maps.Point(0, 0),
+            },
+          });
+
+          naver.maps.Event.addListener(marker, "click", () => {
+            const map = mapRef.current;
+            if (!map) return;
+
+            console.log(data.name, data.message, data.plantedAt);
+            smoothMoveTo(flower.latitude, flower.longitude);
           });
 
           newFlowers.push(marker);
@@ -158,31 +337,40 @@ const PlantMap = ({
     }
 
     const position = new naver.maps.LatLng(lat, lng);
+
     const marker = new naver.maps.Marker({
       position: position,
       map: mapRef.current,
       icon: {
         content: `
-          <div class="bloom" style="
-            background: #d8493f; 
-            border-radius: 50%; 
-            width: 24px; 
-            height: 24px; 
-            border: 3px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-          ">
-            🌸
+          <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+            <div class="bloom" style="
+              background: #d8493f;
+              border-radius: 50%;
+              width: 24px;
+              height: 24px;
+              border: 3px solid white;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-size: 14px;
+              font-weight: bold;
+              cursor: pointer;
+              box-sizing: border-box;
+              transform-origin: center;
+
+              position: absolute;
+            ">
+              🌸
+            </div>
           </div>
         `,
         size: new naver.maps.Size(24, 24),
-        anchor: new naver.maps.Point(12, 12),
+        anchor: new naver.maps.Point(0, 0),
+        zIndex: 1000,
       },
     });
 
@@ -197,7 +385,7 @@ const PlantMap = ({
     setUserMarkerData({ lat, lng });
 
     // 지도 중심을 랜덤 위치로 이동
-    smoothMoveTo(lat, lng);
+    // smoothMoveTo(lat, lng);
 
     return marker;
   };
@@ -236,10 +424,10 @@ const PlantMap = ({
       const lat = e.coord.lat();
       const lng = e.coord.lng();
       addUserMarker(lat, lng);
-      smoothMoveTo(lat, lng);
     });
 
     naver.maps.Event.addListener(newMap, "zoomstart", () => {
+      resetSubFlower();
       resetExistingFlowers();
     });
 
