@@ -5,7 +5,7 @@ import PlantPage from "./pages/PlantPage/PlantPage";
 import ExplorePage from "./pages/ExplorePage/ExplorePage";
 import { AppStateProvider } from "./state/AppState";
 import ResultPage from "./pages/ResultPage/ResultPage";
-import AuthPage from "./pages/AuthPage/authpage";
+import AuthPage from "./pages/AuthPage/AuthPage";
 
 export default function App() {
   return (
