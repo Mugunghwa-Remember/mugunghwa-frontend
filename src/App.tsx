@@ -1,11 +1,11 @@
 import { Routes, Route } from "react-router-dom";
 import "./index.css";
 import IntroPage from "./pages/IntroPage/IntroPage";
-import PlantPage from "./pages/PlantPage";
-import PlantPage2 from "./pages/PlantPage2";
-import ExplorePage from "./pages/ExplorePage";
-import ResultPage from "./pages/ResultPage";
+import PlantPage from "./pages/PlantPage/PlantPage";
+import ExplorePage from "./pages/ExplorePage/ExplorePage";
 import { AppStateProvider } from "./state/AppState";
+import ResultPage from "./pages/ResultPage/ResultPage";
+import AuthPage from "./pages/AuthPage/authpage";
 
 export default function App() {
   return (
@@ -17,14 +17,12 @@ export default function App() {
 
 function MainLayout() {
   return (
-    <main className="min-h-screen">
-      <Routes>
-        <Route path="/" element={<IntroPage />} />
-        <Route path="/plant" element={<PlantPage />} />
-        <Route path="/plant2" element={<PlantPage2 />} />
-        <Route path="/explore" element={<ExplorePage />} />
-        <Route path="/result" element={<ResultPage />} />
-      </Routes>
-    </main>
+    <Routes>
+      <Route path="/" element={<IntroPage />} />
+      <Route path="/plant" element={<PlantPage />} />
+      <Route path="/explore" element={<ExplorePage />} />
+      <Route path="/result" element={<ResultPage />} />
+      <Route path="/oauth" element={<AuthPage />} />
+    </Routes>
   );
 }

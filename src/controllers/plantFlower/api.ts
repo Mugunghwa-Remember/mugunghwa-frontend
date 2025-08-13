@@ -1,17 +1,20 @@
 import { API_CONFIG } from "../config";
-import type { FlowerProgressData } from "./types";
 
-const fetchFlowerProgress = async (): Promise<{
-  success: boolean;
-  data: FlowerProgressData;
-}> => {
+const fetchPlantFlower = async (payload: {
+  latitude: number;
+  longitude: number;
+  name: string;
+  message: string;
+}) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
 
   try {
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}/mugunghwa/getTotalFlowerCount`,
+      `${API_CONFIG.BASE_URL}/mugunghwa/plantFlower`,
       {
+        method: "POST",
+        body: JSON.stringify(payload),
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -46,4 +49,4 @@ const fetchFlowerProgress = async (): Promise<{
   }
 };
 
-export default fetchFlowerProgress;
+export default fetchPlantFlower;

@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { useToast } from "../hooks/useToast";
 import {
   KOREA_LAND_BOUNDARY,
-  KOREA_MAP_BOUNDARY,
   MAP_DEFAULT_OPTIONS,
 } from "../constants/koreaMap";
-import { fetchExistingFlowers } from "../controllers/existingFlowers/api";
-import { getExistingFlowersData } from "../controllers/existingFlowers/clustering";
+import {
+  clusterSize,
+  createMarker,
+  getFlowerHTML,
+  smoothMoveTo,
+} from "../utils/FlowerMap";
+import { isPointInPolygon } from "../utils/Point";
 import type {
   ClusteredExistingFlowers,
   ClusteredExistingFlowersCluster,
@@ -14,13 +17,8 @@ import type {
   ClusteredExistingFlowersLeaf,
   ZoomData,
 } from "../controllers/existingFlowers/types";
-import { generateRandomPointInPolygon, isPointInPolygon } from "../utils/Point";
-import {
-  clusterSize,
-  createMarker,
-  getFlowerHTML,
-  smoothMoveTo,
-} from "../utils/FlowerMap";
+import { getExistingFlowersData } from "../controllers/existingFlowers/clustering";
+import { fetchExistingFlowers } from "../controllers/existingFlowers/api";
 
 interface SubFlowerRef {
   parent: naver.maps.Marker;
@@ -28,28 +26,42 @@ interface SubFlowerRef {
   childLines: naver.maps.Polyline[];
 }
 
-const PlantMap = ({
-  setUserMarkerData,
-  onRandomLocation,
+const useFlowerMap = ({
+  mapOptions,
+  enableClickEvent = true,
+  enableUserMarker = false,
 }: {
-  setUserMarkerData: React.Dispatch<
-    React.SetStateAction<{
-      lat: number;
-      lng: number;
-    } | null>
-  >;
-  onRandomLocation: React.MutableRefObject<(() => void) | null>;
+  mapOptions?: naver.maps.MapOptions;
+  enableClickEvent?: boolean;
+  enableUserMarker?: boolean;
 }) => {
   const mapRef = useRef<naver.maps.Map | null>(null);
   const userMarkerRef = useRef<naver.maps.Marker | null>(null);
   const existingFlowersRef = useRef<naver.maps.Marker[]>([]);
   const SubFlowerRef = useRef<SubFlowerRef | null>(null);
 
+  const [userMarkerLocation, setUserMarkerLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  console.log(userMarkerLocation);
   const [zoomData, setZoomData] = useState<ZoomData | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
-  // 토스트 훅 사용
-  const { toast, showToast } = useToast(1500);
+  const loadMarkers = async () => {
+    if (!mapRef.current) return;
+    const bounds = mapRef.current.getBounds();
+
+    if (bounds) {
+      setZoomData({
+        zoom: mapRef.current.getZoom() || 7,
+        minlat: bounds.getMin().y,
+        minlng: bounds.getMin().x,
+        maxlat: bounds.getMax().y,
+        maxlng: bounds.getMax().x,
+      });
+    }
+  };
 
   // 마커 관리
   const resetExistingFlowers = () => {
@@ -77,9 +89,8 @@ const PlantMap = ({
 
   // 사용자 마커 추가 함수
   const addUserMarker = (lat: number, lng: number) => {
-    // 한국 영역 내에 있는지 확인
     if (!isPointInPolygon([lat, lng], KOREA_LAND_BOUNDARY)) {
-      showToast("한국 영역 내에서만 무궁화를 심을 수 있습니다.");
+      // showToast("한국 영역 내에서만 무궁화를 심을 수 있습니다.");
       return;
     }
 
@@ -117,15 +128,17 @@ const PlantMap = ({
       1000
     );
 
-    // 마커 클릭 이벤트 - 마커 제거
-    naver.maps.Event.addListener(marker, "click", () => {
-      marker.setMap(null);
-      userMarkerRef.current = null;
-      setUserMarkerData(null);
-    });
+    if (enableClickEvent) {
+      // 마커 클릭 이벤트 - 마커 제거
+      naver.maps.Event.addListener(marker, "click", () => {
+        marker.setMap(null);
+        userMarkerRef.current = null;
+        setUserMarkerLocation(null);
+      });
+    }
 
     userMarkerRef.current = marker;
-    setUserMarkerData({ lat, lng });
+    setUserMarkerLocation({ lat, lng });
     smoothMoveTo(mapRef.current, lat, lng);
     return marker;
   };
@@ -256,6 +269,41 @@ const PlantMap = ({
   };
 
   useEffect(() => {
+    if (!isMounted) return;
+
+    (async () => {
+      const data = await fetchExistingFlowers();
+      console.log(data);
+      loadMarkers();
+    })();
+
+    const newMap = new naver.maps.Map("map", {
+      ...MAP_DEFAULT_OPTIONS,
+      ...mapOptions,
+    });
+
+    if (enableClickEvent) {
+      if (enableUserMarker) {
+        naver.maps.Event.addListener(newMap, "click", (e) => {
+          addUserMarker(e.coord.lat(), e.coord.lng());
+        });
+      }
+
+      naver.maps.Event.addListener(newMap, "zoomstart", () => {
+        resetSubFlower();
+        resetExistingFlowers();
+      });
+
+      naver.maps.Event.addListener(newMap, "idle", () => {
+        if (!mapRef.current) return;
+        loadMarkers();
+      });
+    }
+
+    mapRef.current = newMap;
+  }, [isMounted]);
+
+  useEffect(() => {
     if (!zoomData) return;
 
     const map = mapRef.current;
@@ -304,9 +352,11 @@ const PlantMap = ({
               maxCount
             );
 
-            naver.maps.Event.addListener(marker, "click", () =>
-              handleClusterClick(flower)
-            );
+            if (enableClickEvent) {
+              naver.maps.Event.addListener(marker, "click", () =>
+                handleClusterClick(flower)
+              );
+            }
 
             return marker;
           },
@@ -315,18 +365,22 @@ const PlantMap = ({
             const marker = createFlowerMarker(flower, leafData.count, maxCount);
             if (!marker) return;
 
-            naver.maps.Event.addListener(marker, "click", () =>
-              handleLeafClick(marker, flower, maxCount)
-            );
+            if (enableClickEvent) {
+              naver.maps.Event.addListener(marker, "click", () =>
+                handleLeafClick(marker, flower, maxCount)
+              );
+            }
 
             return marker;
           },
           FLOWER: () => {
             const marker = createFlowerMarker(flower, 1, maxCount);
 
-            naver.maps.Event.addListener(marker, "click", () =>
-              handleFlowerClick(flower)
-            );
+            if (enableClickEvent) {
+              naver.maps.Event.addListener(marker, "click", () =>
+                handleFlowerClick(flower)
+              );
+            }
 
             return marker;
           },
@@ -344,123 +398,11 @@ const PlantMap = ({
     });
   }, [zoomData]);
 
-  const loadMarkers = async () => {
-    if (!mapRef.current) return;
-    const bounds = mapRef.current.getBounds();
-
-    if (bounds) {
-      setZoomData({
-        zoom: mapRef.current.getZoom() || 7,
-        minlat: bounds.getMin().y,
-        minlng: bounds.getMin().x,
-        maxlat: bounds.getMax().y,
-        maxlng: bounds.getMax().x,
-      });
-    }
-  };
-
-  // 랜덤 위치 함수를 props로 전달받은 함수에 연결
-  useEffect(() => {
-    if (onRandomLocation) {
-      onRandomLocation.current = () => {
-        const randomLocation = generateRandomPointInPolygon(
-          KOREA_LAND_BOUNDARY,
-          [KOREA_MAP_BOUNDARY[0][0], KOREA_MAP_BOUNDARY[0][1]],
-          [KOREA_MAP_BOUNDARY[1][0], KOREA_MAP_BOUNDARY[1][1]]
-        );
-        if (randomLocation) {
-          addUserMarker(randomLocation[0], randomLocation[1]);
-        }
-      };
-    }
-  }, [onRandomLocation]);
-
-  useEffect(() => {
-    if (!isMounted) return;
-
-    (async () => {
-      const data = await fetchExistingFlowers();
-      console.log(data);
-      loadMarkers();
-    })();
-
-    const newMap = new naver.maps.Map("map", MAP_DEFAULT_OPTIONS);
-
-    naver.maps.Event.addListener(newMap, "click", (e) => {
-      addUserMarker(e.coord.lat(), e.coord.lng());
-    });
-
-    naver.maps.Event.addListener(newMap, "zoomstart", () => {
-      resetSubFlower();
-      resetExistingFlowers();
-    });
-
-    naver.maps.Event.addListener(newMap, "idle", () => {
-      if (!mapRef.current) return;
-      loadMarkers();
-    });
-
-    // const bounds = newMap.getBounds();
-    // setZoomData({
-    //   zoom: newMap.getZoom() || 7,
-    //   minlat: bounds.getMin().y,
-    //   minlng: bounds.getMin().x,
-    //   maxlat: bounds.getMax().y,
-    //   maxlng: bounds.getMax().x,
-    // });
-
-    mapRef.current = newMap;
-  }, [isMounted]);
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  return (
-    <div style={{ position: "relative", height: "100%", width: "100%" }}>
-      <div
-        style={{
-          height: "100%",
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#f5f5f5",
-          borderRadius: "16px",
-          overflow: "hidden",
-        }}
-        id="map"
-      >
-        <div>지도를 불러오는 중...</div>
-      </div>
-
-      {/* 토스트 메시지 */}
-      {toast.enabled && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
-            color: "white",
-            padding: "12px 20px",
-            borderRadius: "8px",
-            fontSize: "14px",
-            fontFamily: "Pretendard, sans-serif",
-            fontWeight: "500",
-            zIndex: 1001,
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
-            animation: "slideUp 0.3s ease-out",
-            transition: "opacity 0.3s ease-out",
-            opacity: toast.closing ? 0 : 1,
-          }}
-        >
-          {toast.message}
-        </div>
-      )}
-    </div>
-  );
+  return [mapRef];
 };
 
-export default PlantMap;
+export default useFlowerMap;

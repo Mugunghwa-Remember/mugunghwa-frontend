@@ -1,13 +1,15 @@
-import { useNavigate } from "react-router-dom";
 import indexImage from "../../assets/index.png";
 import * as styles from "./IntroPage.css";
 import FlowerProgressCard from "../../components/FlowerProgressCard";
+import KakaoSVG from "../../assets/kakao.svg?react";
 
 export default function IntroPage() {
-  const navigate = useNavigate();
-
-  const handleStart = () => {
-    navigate("/plant2");
+  const handleKakaoLogin = () => {
+    const redirect_uri = `${window.location.origin}/oauth`;
+    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${
+      import.meta.env.VITE_KAKAO_REST_API_KEY
+    }&redirect_uri=${redirect_uri}`;
+    window.location.href = kakaoAuthUrl;
   };
 
   return (
@@ -20,11 +22,7 @@ export default function IntroPage() {
           </p>
         </div>
 
-        <FlowerProgressCard
-        // API 연동 전까지는 기본값 사용
-        // apiEndpoint="/api/flower-progress"
-        // refreshInterval={5 * 60 * 1000} // 5분마다 새로고침
-        />
+        <FlowerProgressCard />
 
         <img src={indexImage} alt="무궁화 꽃" className={styles.flower} />
 
@@ -35,8 +33,12 @@ export default function IntroPage() {
             대한민국 실시간 지도에 꽃이 피어납니다.
           </p>
           <div className={styles.buttonContainer}>
-            <button className={styles.startButton} onClick={handleStart}>
-              시작하기
+            <button
+              className={styles.kakaoLoginButton}
+              onClick={handleKakaoLogin}
+            >
+              <KakaoSVG className={styles.kakaoLoginButtonIcon} />
+              <p className={styles.kakaoLoginButtonText}>카카오로 시작하기</p>
             </button>
             <p className={styles.footerText}>
               메시지와 헌화 기록은 매년 8월 15일 리마인드됩니다.

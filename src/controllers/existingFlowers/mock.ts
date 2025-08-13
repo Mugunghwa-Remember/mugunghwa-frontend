@@ -5,7 +5,7 @@ import {
   KOREA_MAP_BOUNDARY,
 } from "../../constants/koreaMap";
 import { generateRandomPointInPolygon } from "../../utils/Point";
-import type { ExistingFlower, ExistingFlowersData } from "./types";
+import type { ExistingFlower } from "./types";
 
 const NAMES = [
   "김철수",
@@ -79,13 +79,11 @@ function generateMockFlower(id: number): ExistingFlower {
       Math.random() > 0.3
         ? MESSAGES[Math.floor(Math.random() * MESSAGES.length)]
         : undefined,
-    count: 1,
     latitude: lat,
     longitude: lng,
     plantedAt: new Date(
       Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
     ).toISOString(), // 최근 30일 내
-    flowerType: "mugunghwa",
   };
 }
 
@@ -93,15 +91,11 @@ export function generateMockExistingFlowers(count: number): ExistingFlower[] {
   return Array.from({ length: count }, (_, i) => generateMockFlower(i));
 }
 
-export const mockExistingFlowersData: ExistingFlowersData = {
-  flowers: generateMockExistingFlowers(100000),
-  totalCount: 100000,
-  lastUpdated: new Date().toISOString(),
+export const mockExistingFlowersData: ExistingFlower[] =
+  generateMockExistingFlowers(100000);
+
+export const mockExistingFlowersApi = async (): Promise<ExistingFlower[]> => {
+  // await new Promise((resolve) => setTimeout(resolve, 300));
+
+  return mockExistingFlowersData;
 };
-
-export const mockExistingFlowersApi =
-  async (): Promise<ExistingFlowersData> => {
-    // await new Promise((resolve) => setTimeout(resolve, 300));
-
-    return mockExistingFlowersData;
-  };

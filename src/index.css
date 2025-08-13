@@ -46,14 +46,26 @@
   --paper: #f8f4ed;
   --primary: #d8493f;
 }
-html,
-body {
+
+html {
   height: 100%;
+  zoom: 1; /* 기본 줌 설정 */
 }
+
+body {
+  margin: 0;
+  display: block;
+  height: 100%;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
 body {
   background: var(--paper);
   color: var(--ink);
 }
+
 .screen {
   display: none;
 }

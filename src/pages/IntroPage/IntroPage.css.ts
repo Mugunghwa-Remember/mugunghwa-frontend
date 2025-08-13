@@ -133,27 +133,36 @@ export const buttonContainer = style({
   },
 });
 
-export const startButton = style({
-  fontFamily: vars.fonts.yeongnamnu,
-  background: vars.colors.primary,
-  color: "white",
+export const kakaoLoginButton = style({
+  maxWidth: "640px",
   width: "100%",
-  padding: `${vars.spacing.md} 0`,
-  borderRadius: vars.borderRadius.xl,
-  fontSize: "24px",
-  fontWeight: "400",
-  cursor: "pointer",
-  transition: "all 0.2s ease",
-  ":hover": {
-    transform: "translateY(-1px)",
-    boxShadow: "0 10px 30px rgba(216, 73, 63, 0.3)",
-  },
+  height: "64px",
+  background: "#FEE500",
+  borderRadius: "12px",
 
-  "@media": {
-    "screen and (max-width: 768px)": {
-      fontSize: "16px",
-    },
-  },
+  padding: "0 24px",
+  cursor: "pointer",
+
+  display: "flex",
+  alignItems: "center",
+
+  gap: "8px",
+});
+
+export const kakaoLoginButtonIcon = style({
+  width: "32px",
+  height: "auto",
+  aspectRatio: "1 / 1",
+});
+
+export const kakaoLoginButtonText = style({
+  color: "rgba(0, 0, 0, 0.85)",
+  fontFamily: vars.fonts.pretendard,
+  fontWeight: "600",
+  fontSize: "18px",
+  border: "none",
+  textAlign: "center",
+  width: "100%",
 });
 
 export const footerText = style({

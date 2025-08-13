@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import * as styles from "./PlantPage2.css";
-import FlowerProgressCard from "../components/FlowerProgressCard";
-import PlantMap from "../components/PlantMap";
+import * as styles from "./PlantPage.css";
+import FlowerProgressCard from "../../components/FlowerProgressCard";
+import PlantMap from "../../components/PlantMap";
+import fetchPlantFlower from "../../controllers/plantFlower/api";
 
 export default function PlantPage2() {
   const navigate = useNavigate();
@@ -49,7 +50,6 @@ export default function PlantPage2() {
       message,
       location: userMarkerData,
     });
-
     // 꽃 심기 완료 후 기부 모달 표시
     setShowDonationModal(true);
   };
@@ -63,12 +63,38 @@ export default function PlantPage2() {
   const handleDonation = () => {
     // 카카오같이가치 기부 페이지로 이동
     window.open("https://together.kakao.com", "_blank");
-    setShowDonationModal(false);
+
+    fetchPlantFlower({
+      latitude: userMarkerData?.lat || 0,
+      longitude: userMarkerData?.lng || 0,
+      name,
+      message,
+    }).then(() => {
+      navigate("/result", {
+        state: {
+          name,
+          message,
+          flowerLocation: userMarkerData,
+        },
+      });
+    });
   };
 
   const handleCloseModal = () => {
-    // ResultPage로 이동
-    navigate("/result");
+    fetchPlantFlower({
+      latitude: userMarkerData?.lat || 0,
+      longitude: userMarkerData?.lng || 0,
+      name,
+      message,
+    }).then(() => {
+      navigate("/result", {
+        state: {
+          name,
+          message,
+          flowerLocation: userMarkerData,
+        },
+      });
+    });
   };
 
   const handleModalOverlayClick = (e: React.MouseEvent) => {
@@ -100,7 +126,7 @@ export default function PlantPage2() {
                 카카오같이가치 기부하기
               </button>
               <button className={styles.closeButton} onClick={handleCloseModal}>
-                다음에 할게요
+                꽃만 심을게요
               </button>
             </div>
           </div>

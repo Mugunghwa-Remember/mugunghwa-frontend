@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import * as styles from "./FlowerProgressCard.css";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
-import { fetchFlowerProgress } from "../../controllers/flowerProgressController";
-import type { FlowerProgressData } from "../../controllers/flowerProgressController";
+import fetchFlowerProgress from "../../controllers/flowerProgress/api";
+import type { FlowerProgressData } from "../../controllers/flowerProgress/types";
 
-const REFRESH_INTERVAL = 1 * 60 * 1000; // 1분
+const REFRESH_INTERVAL = 3 * 60 * 1000; // 3분
 
 export default function FlowerProgressCard() {
   const [data, setData] = useState<FlowerProgressData | null>(null);
@@ -17,9 +17,9 @@ export default function FlowerProgressCard() {
       setIsLoading(true);
       setError(null);
 
-      const data = await fetchFlowerProgress();
-      const apiData: FlowerProgressData = data;
-      setData(apiData);
+      const response = await fetchFlowerProgress();
+      console.log(response);
+      setData(response.data);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "데이터를 불러오는데 실패했습니다"

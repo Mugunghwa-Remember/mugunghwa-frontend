@@ -2,40 +2,49 @@ import type { Feature, Point } from "geojson";
 import { mockExistingFlowersApi } from "./mock";
 import { clusterIndex, supercluster } from "./clustering";
 import type { PointFeature } from "supercluster";
-
-// API 기본 설정
-const API_CONFIG = {
-  // BASE_URL: process.env.REACT_APP_API_BASE_URL || "https://api.mugunghwa.com",
-  TIMEOUT: 10000, // 10초
-  RETRY_ATTEMPTS: 3,
-} as const;
+import { API_CONFIG } from "../config";
+import type { ExistingFlower } from "./types";
 
 export const fetchExistingFlowers = async () => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
+  const mockEnabled = false;
 
   try {
-    // const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     ...options.headers,
-    //   },
-    //   signal: controller.signal,
-    //   ...options,
-    // });
+    const data = await (mockEnabled
+      ? (async () => {
+          return await mockExistingFlowersApi();
+        })()
+      : (async () => {
+          const response = await fetch(
+            `${API_CONFIG.BASE_URL}/mugunghwa/getAllFlowers`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+              },
+              signal: controller.signal,
+            }
+          );
 
-    // if (!response.ok) {
-    //   throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    // }
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
 
-    // const data = await response.json();
+          const data = await response.json();
 
-    const data = await mockExistingFlowersApi();
+          return data;
+        })());
 
-    const points: Feature<Point>[] = data.flowers.map((d) => ({
+    console.log(data);
+
+    const points: Feature<Point>[] = data.map((flower: ExistingFlower) => ({
       type: "Feature",
-      properties: d, // 필요한 속성
-      geometry: { type: "Point", coordinates: [d.longitude, d.latitude] },
+      properties: flower, // 필요한 속성
+      geometry: {
+        type: "Point",
+        coordinates: [flower.longitude, flower.latitude],
+      },
     }));
 
     clusterIndex.body = await supercluster.load(

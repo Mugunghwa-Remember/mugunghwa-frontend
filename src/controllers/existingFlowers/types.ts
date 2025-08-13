@@ -3,11 +3,9 @@ export interface ExistingFlower {
   id: string;
   name: string;
   message?: string;
-  count: number;
   latitude: number;
   longitude: number;
   plantedAt: string;
-  flowerType: "mugunghwa";
 }
 
 export interface ExistingFlowersData {

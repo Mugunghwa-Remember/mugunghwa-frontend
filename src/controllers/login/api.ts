@@ -1,24 +1,21 @@
 import { API_CONFIG } from "../config";
-import type { FlowerProgressData } from "./types";
 
-const fetchFlowerProgress = async (): Promise<{
-  success: boolean;
-  data: FlowerProgressData;
-}> => {
+export const fetchKakaoLogin = async (payload: {
+  code: string;
+  redirectUri: string;
+}) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
 
   try {
-    const response = await fetch(
-      `${API_CONFIG.BASE_URL}/mugunghwa/getTotalFlowerCount`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-        signal: controller.signal,
-      }
-    );
+    const response = await fetch(`${API_CONFIG.BASE_URL}/auth/login/kakao`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -45,5 +42,3 @@ const fetchFlowerProgress = async (): Promise<{
     throw new Error("알 수 없는 오류가 발생했습니다.");
   }
 };
-
-export default fetchFlowerProgress;
