@@ -2,9 +2,19 @@ import indexImage from "../../assets/index.png";
 import * as styles from "./IntroPage.css";
 import FlowerProgressCard from "../../components/FlowerProgressCard";
 import KakaoSVG from "../../assets/kakao.svg?react";
+import { useEffect } from "react";
+import { safeTrack } from "../../utils/mixpanel";
 
 export default function IntroPage() {
+  useEffect(() => {
+    safeTrack("page_view", {
+      page: "intro",
+    });
+  }, []);
+
   const handleKakaoLogin = () => {
+    safeTrack("kakao_login_button_click");
+
     const redirect_uri = `${window.location.origin}/oauth`;
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${
       import.meta.env.VITE_KAKAO_REST_API_KEY

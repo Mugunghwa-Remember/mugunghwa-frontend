@@ -1,12 +1,19 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import * as styles from "./PlantPage.css";
 import FlowerProgressCard from "../../components/FlowerProgressCard";
 import PlantMap from "../../components/PlantMap";
 import fetchPlantFlower from "../../controllers/plantFlower/api";
 import { useIsMobile } from "../../hooks/useWindowSize";
+import { safeTrack } from "../../utils/mixpanel";
 
 export default function PlantPage2() {
+  useEffect(() => {
+    safeTrack("page_view", {
+      page: "plant",
+    });
+  }, []);
+
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
@@ -42,10 +49,21 @@ export default function PlantPage2() {
     const nameValidationError = validateName(name);
     if (nameValidationError) {
       setNameError(nameValidationError);
+      safeTrack("plant_validation_error", {
+        error: nameValidationError,
+        name: name.trim(),
+      });
       return;
     }
 
     if (!(name.trim() && userMarkerData)) return;
+
+    safeTrack("flower_plant_attempt", {
+      name: name.trim(),
+      message_length: message.trim().length,
+      has_message: !!message.trim(),
+      location: userMarkerData,
+    });
 
     console.log("Planting flower:", {
       name,
@@ -57,12 +75,19 @@ export default function PlantPage2() {
   };
 
   const handleRandomLocation = () => {
+    safeTrack("random_location_button_click");
     if (randomLocationRef.current) {
       randomLocationRef.current();
     }
   };
 
   const handleDonation = () => {
+    safeTrack("donation_button_click", {
+      name: name.trim(),
+      message_length: message.trim().length,
+      location: userMarkerData,
+    });
+
     // 카카오같이가치 기부 페이지로 이동
     window.open("https://together.kakao.com", "_blank");
 
@@ -72,6 +97,14 @@ export default function PlantPage2() {
       name,
       message,
     }).then(() => {
+      safeTrack("flower_planted_success", {
+        name: name.trim(),
+        message_length: message.trim().length,
+        has_message: !!message.trim(),
+        location: userMarkerData,
+        with_donation: true,
+      });
+
       navigate("/result", {
         state: {
           name,
@@ -83,12 +116,26 @@ export default function PlantPage2() {
   };
 
   const handleCloseModal = () => {
+    safeTrack("donation_modal_closed", {
+      name: name.trim(),
+      message_length: message.trim().length,
+      location: userMarkerData,
+    });
+
     fetchPlantFlower({
       latitude: userMarkerData?.lat || 0,
       longitude: userMarkerData?.lng || 0,
       name,
       message,
     }).then(() => {
+      safeTrack("flower_planted_success", {
+        name: name.trim(),
+        message_length: message.trim().length,
+        has_message: !!message.trim(),
+        location: userMarkerData,
+        with_donation: false,
+      });
+
       navigate("/result", {
         state: {
           name,

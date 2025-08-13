@@ -3,6 +3,7 @@ import * as styles from "./FlowerProgressCard.css";
 import { assignInlineVars } from "@vanilla-extract/dynamic";
 import fetchFlowerProgress from "../../controllers/flowerProgress/api";
 import type { FlowerProgressData } from "../../controllers/flowerProgress/types";
+import { safeTrack } from "../../utils/mixpanel";
 
 const REFRESH_INTERVAL = 3 * 60 * 1000; // 3분
 
@@ -17,14 +18,30 @@ export default function FlowerProgressCard() {
       setIsLoading(true);
       setError(null);
 
+      safeTrack("flower_progress_data_request");
+
       const response = await fetchFlowerProgress();
       console.log(response);
       setData(response.data);
+
+      safeTrack("flower_progress_data_success", {
+        current_count: response.data.currentCount,
+        target_count: response.data.targetCount,
+        progress_percentage: Math.min(
+          (response.data.currentCount / response.data.targetCount) * 100,
+          100
+        ),
+      });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "데이터를 불러오는데 실패했습니다"
-      );
+      const errorMessage =
+        err instanceof Error ? err.message : "데이터를 불러오는데 실패했습니다";
+      setError(errorMessage);
       console.error("FlowerProgressCard API Error:", err);
+
+      safeTrack("flower_progress_data_error", {
+        error: errorMessage,
+        error_type: err instanceof Error ? err.constructor.name : "unknown",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -32,6 +49,7 @@ export default function FlowerProgressCard() {
 
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
+    safeTrack("flower_progress_card_mounted");
     fetchProgressData();
     if (REFRESH_INTERVAL <= 0) return;
 
@@ -67,7 +85,15 @@ export default function FlowerProgressCard() {
         <div className={styles.progressContainer}>
           <div className={styles.errorState}>
             <span className={styles.errorMessage}>⚠️ {error}</span>
-            <button className={styles.retryButton} onClick={fetchProgressData}>
+            <button
+              className={styles.retryButton}
+              onClick={() => {
+                safeTrack("flower_progress_retry_click", {
+                  error: error,
+                });
+                fetchProgressData();
+              }}
+            >
               다시 시도
             </button>
           </div>

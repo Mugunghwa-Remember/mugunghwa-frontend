@@ -21,6 +21,7 @@ import {
   getFlowerHTML,
   smoothMoveTo,
 } from "../utils/FlowerMap";
+import { safeTrack } from "../utils/mixpanel";
 
 interface SubFlowerRef {
   parent: naver.maps.Marker;
@@ -80,6 +81,13 @@ const PlantMap = ({
     // 한국 영역 내에 있는지 확인
     if (!isPointInPolygon([lat, lng], KOREA_LAND_BOUNDARY)) {
       showToast("한국 영역 내에서만 무궁화를 심을 수 있습니다.");
+
+      safeTrack("plant_map_outside_korea_click", {
+        lat,
+        lng,
+        is_in_korea: false,
+      });
+
       return;
     }
 
@@ -119,6 +127,12 @@ const PlantMap = ({
 
     // 마커 클릭 이벤트 - 마커 제거
     naver.maps.Event.addListener(marker, "click", () => {
+      safeTrack("plant_map_user_marker_remove", {
+        lat,
+        lng,
+        is_in_korea: true,
+      });
+
       marker.setMap(null);
       userMarkerRef.current = null;
       setUserMarkerData(null);
@@ -127,6 +141,14 @@ const PlantMap = ({
     userMarkerRef.current = marker;
     setUserMarkerData({ lat, lng });
     smoothMoveTo(mapRef.current, lat, lng);
+
+    safeTrack("plant_map_user_marker_added", {
+      lat,
+      lng,
+      is_in_korea: true,
+      zoom: mapRef.current.getZoom(),
+    });
+
     return marker;
   };
 
@@ -157,6 +179,13 @@ const PlantMap = ({
   const handleClusterClick = (flower: ClusteredExistingFlowers) => {
     if (!mapRef.current) return;
 
+    safeTrack("plant_map_cluster_click", {
+      flower_type: flower.type,
+      lat: flower.latitude,
+      lng: flower.longitude,
+      zoom: mapRef.current.getZoom(),
+    });
+
     resetSubFlower();
     resetExistingFlowers();
     const center = new naver.maps.LatLng(flower.latitude, flower.longitude);
@@ -168,6 +197,13 @@ const PlantMap = ({
     flower: ClusteredExistingFlowers,
     maxCount: number
   ) => {
+    safeTrack("plant_map_leaf_click", {
+      flower_type: flower.type,
+      lat: flower.latitude,
+      lng: flower.longitude,
+      max_count: maxCount,
+    });
+
     resetSubFlower();
 
     const beforeIcon = marker.getIcon() as naver.maps.HtmlIcon;
@@ -252,6 +288,17 @@ const PlantMap = ({
   const handleFlowerClick = (flower: ClusteredExistingFlowers) => {
     const flowerData = flower.data as ClusteredExistingFlowersFlower;
     console.log(flowerData.name, flowerData.message, flowerData.plantedAt);
+
+    safeTrack("plant_map_flower_click", {
+      flower_type: flower.type,
+      lat: flower.latitude,
+      lng: flower.longitude,
+      flower_name: flowerData.name,
+      has_message: !!flowerData.message,
+      message_length: flowerData.message?.length || 0,
+      planted_at: flowerData.plantedAt,
+    });
+
     smoothMoveTo(mapRef.current, flower.latitude, flower.longitude);
   };
 
@@ -363,6 +410,8 @@ const PlantMap = ({
   useEffect(() => {
     if (onRandomLocation) {
       onRandomLocation.current = () => {
+        safeTrack("plant_map_random_location_generated");
+
         const randomLocation = generateRandomPointInPolygon(
           KOREA_LAND_BOUNDARY,
           [KOREA_MAP_BOUNDARY[0][0], KOREA_MAP_BOUNDARY[0][1]],
@@ -382,6 +431,10 @@ const PlantMap = ({
       const data = await fetchExistingFlowers();
       console.log(data);
       loadMarkers();
+
+      safeTrack("plant_map_existing_flowers_loaded", {
+        flower_count: data.flowers.length,
+      });
     })();
 
     const newMap = new naver.maps.Map("map", MAP_DEFAULT_OPTIONS);
@@ -391,6 +444,10 @@ const PlantMap = ({
     });
 
     naver.maps.Event.addListener(newMap, "zoomstart", () => {
+      safeTrack("plant_map_zoom_start", {
+        zoom: newMap.getZoom(),
+      });
+
       resetSubFlower();
       resetExistingFlowers();
     });
@@ -410,6 +467,8 @@ const PlantMap = ({
     // });
 
     mapRef.current = newMap;
+
+    safeTrack("plant_map_initialized");
   }, [isMounted]);
 
   useEffect(() => {

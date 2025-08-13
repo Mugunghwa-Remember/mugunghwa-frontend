@@ -8,8 +8,15 @@ import { createMarker, getFlowerHTML } from "../../utils/FlowerMap";
 import useFlowerMap from "../../hooks/useFlowerMap";
 import logoPng from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
+import { safeTrack } from "../../utils/mixpanel";
 
 const ResultPage = () => {
+  useEffect(() => {
+    safeTrack("page_view", {
+      page: "result",
+    });
+  }, []);
+
   const navigate = useNavigate();
   const location = useLocation();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -22,11 +29,34 @@ const ResultPage = () => {
   const handleSaveImage = async () => {
     if (!cardRef.current) return;
 
+    safeTrack("image_save_attempt", {
+      name,
+      message_length: message?.length || 0,
+      has_message: !!message,
+      flower_location: flowerLocation,
+    });
+
     try {
       const blob = await domtoimage.toBlob(cardRef.current);
       saveAs(blob, "영원히 기억될 무궁화.png");
+
+      safeTrack("image_save_success", {
+        name,
+        message_length: message?.length || 0,
+        has_message: !!message,
+        flower_location: flowerLocation,
+      });
     } catch (error) {
       console.error("이미지 저장 실패:", error);
+
+      safeTrack("image_save_error", {
+        name,
+        message_length: message?.length || 0,
+        has_message: !!message,
+        flower_location: flowerLocation,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
       alert("이미지 저장에 실패했습니다. 다시 시도해주세요.");
     }
   };
@@ -46,6 +76,13 @@ const ResultPage = () => {
 
   // 카카오톡 공유 기능
   const handleKakaoShare = () => {
+    safeTrack("kakao_share_attempt", {
+      name,
+      message_length: message?.length || 0,
+      has_message: !!message,
+      flower_location: flowerLocation,
+    });
+
     // 카카오톡 공유 API가 설정되어 있지 않은 경우를 위한 임시 처리
     if ((window as any).Kakao) {
       const kakao = (window as any).Kakao;
@@ -78,11 +115,26 @@ const ResultPage = () => {
           },
         ],
       });
+
+      safeTrack("kakao_share_success", {
+        name,
+        message_length: message?.length || 0,
+        has_message: !!message,
+        flower_location: flowerLocation,
+      });
     } else {
       // 카카오톡 공유 API가 없는 경우 클립보드에 링크 복사
       navigator.clipboard
         .writeText(window.location.href)
         .then(() => {
+          safeTrack("link_copy_success", {
+            name,
+            message_length: message?.length || 0,
+            has_message: !!message,
+            flower_location: flowerLocation,
+            method: "clipboard",
+          });
+
           alert("링크가 클립보드에 복사되었습니다. 카카오톡에서 공유해주세요.");
         })
         .catch(() => {
@@ -93,6 +145,15 @@ const ResultPage = () => {
           textArea.select();
           document.execCommand("copy");
           document.body.removeChild(textArea);
+
+          safeTrack("link_copy_success", {
+            name,
+            message_length: message?.length || 0,
+            has_message: !!message,
+            flower_location: flowerLocation,
+            method: "execCommand",
+          });
+
           alert("링크가 클립보드에 복사되었습니다. 카카오톡에서 공유해주세요.");
         });
     }
@@ -179,6 +240,13 @@ const ResultPage = () => {
       <button
         className={styles.exploreButton}
         onClick={() => {
+          safeTrack("result_page_explore_button_click", {
+            name,
+            message_length: message?.length || 0,
+            has_message: !!message,
+            flower_location: flowerLocation,
+          });
+
           navigate("/explore");
         }}
       >
