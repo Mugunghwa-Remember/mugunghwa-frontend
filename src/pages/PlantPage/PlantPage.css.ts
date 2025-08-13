@@ -82,6 +82,7 @@ export const content = style({
     "(max-width: 768px)": {
       flexDirection: "column",
       gap: "8px",
+      alignItems: "center",
     },
   },
 });
@@ -272,6 +273,12 @@ export const rightSection = style({
   alignItems: "center",
   justifyContent: "center",
   gap: "24px",
+
+  "@media": {
+    "(max-width: 768px)": {
+      width: "320px",
+    },
+  },
 });
 
 export const mapPlaceholder = style({
