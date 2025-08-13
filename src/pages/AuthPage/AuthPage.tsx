@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchKakaoLogin } from "../../controllers/login/api";
+import loadingImage from "../../assets/logo.png";
+import { vars } from "../../styles/vars.css";
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -38,7 +40,39 @@ const AuthPage = () => {
     setIsMounted(true);
   }, []);
 
-  return <div>로그인 처리 중입니다...</div>;
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        flexGrow: 1,
+        padding: "20px 0",
+        gap: "28px",
+        maxWidth: "840px",
+        width: "100%",
+      }}
+    >
+      <img
+        style={{
+          width: "128px",
+        }}
+        src={loadingImage}
+        alt="로그인 처리 중"
+      />
+      <p
+        style={{
+          fontFamily: vars.fonts.yeongnamnu,
+          fontSize: "24px",
+          fontWeight: "400",
+          color: vars.colors.ink,
+        }}
+      >
+        로그인 처리 중입니다...
+      </p>
+    </div>
+  );
 };
 
 export default AuthPage;

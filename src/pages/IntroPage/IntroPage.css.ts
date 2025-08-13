@@ -1,33 +1,20 @@
 import { style } from "@vanilla-extract/css";
 import { vars } from "../../styles/vars.css";
 import { fadeUp } from "../../styles/animations.css";
-import backgroundImage from "../../assets/index_background.png";
 
 // Base styles
-export const introSection = style({
-  display: "flex",
-  textAlign: "center",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "100%",
-  height: "100vh",
-  backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(${backgroundImage})`,
-  backgroundSize: "cover",
-  backgroundPosition: "center",
-  backgroundRepeat: "no-repeat",
-  overflow: "hidden",
-  padding: "20px",
-});
 
 export const introContainer = style({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
+  flexGrow: 1,
   gap: "28px",
   maxWidth: "840px",
   width: "100%",
   animation: `${fadeUp} 0.8s ease-out`,
+  padding: "20px 0",
 
   "@media": {
     "screen and (max-width: 768px)": {
@@ -54,7 +41,7 @@ export const title = style({
 
   "@media": {
     "screen and (max-width: 768px)": {
-      fontSize: "32px",
+      fontSize: "28px",
     },
   },
 });

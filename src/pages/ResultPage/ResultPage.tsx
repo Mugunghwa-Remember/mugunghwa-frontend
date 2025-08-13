@@ -6,8 +6,11 @@ import { saveAs } from "file-saver";
 import { useLocation } from "react-router-dom";
 import { createMarker, getFlowerHTML } from "../../utils/FlowerMap";
 import useFlowerMap from "../../hooks/useFlowerMap";
+import logoPng from "../../assets/logo.png";
+import { useNavigate } from "react-router-dom";
 
 const ResultPage = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -127,53 +130,61 @@ const ResultPage = () => {
   }, []);
 
   return (
-    <div className={styles.section}>
-      <div className={styles.container}>
-        <div className={styles.headerSection}>
-          <h1 className={styles.mainTitle}>당신의 무궁화가 피었습니다</h1>
-          <p className={styles.subtitle}>이 순간을 저장하고 공유해보세요</p>
-        </div>
+    <div className={styles.container}>
+      <div className={styles.headerSection}>
+        <h1 className={styles.mainTitle}>당신의 무궁화가 피었습니다</h1>
+        <p className={styles.subtitle}>이 순간을 저장하고 공유해보세요</p>
+      </div>
 
-        <div ref={cardRef} className={styles.cardContainer}>
-          <div className={styles.cardTitle} />
-          <div className={styles.cardContent}>
-            <div className={styles.cardMapContainer}>
-              <div className={styles.cardMapFrame} />
-              <div id="map" className={styles.cardMap} />
-            </div>
-            <div className={styles.cardMessageContainer}>
-              <p className={styles.cardMessage}>
-                독립을 선물해주셔서 감사합니다 독립을 선물해주셔서 감사합니다
-              </p>
-              <p className={styles.cardUserName}>-닉네임-</p>
-            </div>
-            <div className={styles.cardFlowers}>
-              <div className={styles.cardFlowerLeft} />
-              <div className={styles.cardFlowerRight} />
-            </div>
+      <div ref={cardRef} className={styles.cardContainer}>
+        <div className={styles.cardTitle} />
+        <div className={styles.cardContent}>
+          <div className={styles.cardMapContainer}>
+            <div className={styles.cardMapFrame} />
+            <div id="map" className={styles.cardMap} />
           </div>
-          <div className={styles.cardFooter}>
-            <div className={styles.cardFooterLine} />
-            <p>48,594번째 무궁화를 심었습니다.</p>
-            <div className={styles.cardFooterLine} />
+          <div className={styles.cardMessageContainer}>
+            <p className={styles.cardMessage}>
+              독립을 선물해주셔서 감사합니다 독립을 선물해주셔서 감사합니다
+            </p>
+            <p className={styles.cardUserName}>-닉네임-</p>
+          </div>
+          <div className={styles.cardFlowers}>
+            <div className={styles.cardFlowerLeft} />
+            <div className={styles.cardFlowerRight} />
           </div>
         </div>
-
-        <div className={styles.buttonContainer}>
-          <button
-            className={`${styles.button} ${styles.saveButton}`}
-            onClick={handleSaveImage}
-          >
-            이미지 저장
-          </button>
-          <button
-            className={`${styles.button} ${styles.shareButton}`}
-            onClick={handleKakaoShare}
-          >
-            카카오톡 공유
-          </button>
+        <div className={styles.cardFooter}>
+          <div className={styles.cardFooterLine} />
+          <p>48,594번째 무궁화를 심었습니다.</p>
+          <div className={styles.cardFooterLine} />
         </div>
       </div>
+
+      <div className={styles.buttonContainer}>
+        <button
+          className={`${styles.button} ${styles.saveButton}`}
+          onClick={handleSaveImage}
+        >
+          이미지 저장
+        </button>
+        <button
+          className={`${styles.button} ${styles.shareButton}`}
+          onClick={handleKakaoShare}
+        >
+          카카오톡 공유
+        </button>
+      </div>
+
+      <button
+        className={styles.exploreButton}
+        onClick={() => {
+          navigate("/explore");
+        }}
+      >
+        <img className={styles.exploreButtonLogo} src={logoPng} alt="logo" />
+        <p className={styles.exploreButtonText}>무궁화 구경하러 가기</p>
+      </button>
     </div>
   );
 };

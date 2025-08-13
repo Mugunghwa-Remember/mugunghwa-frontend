@@ -1,21 +1,5 @@
 import { style } from "@vanilla-extract/css";
 import { vars } from "../../styles/vars.css";
-import backgroundImage from "../../assets/index_background.png";
-
-export const section = style({
-  display: "flex",
-  flexDirection: "column",
-  width: "100%",
-  height: "100dvh",
-  alignItems: "center",
-  overflowY: "auto",
-  backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(${backgroundImage})`,
-  backgroundSize: "cover",
-  backgroundPosition: "center",
-  backgroundRepeat: "no-repeat",
-  padding: "0 20px",
-  boxSizing: "border-box",
-});
 
 export const container = style({
   display: "flex",
@@ -28,6 +12,12 @@ export const container = style({
   width: "100%",
   padding: "20px 0",
   boxSizing: "border-box",
+
+  "@media": {
+    "(max-width: 768px)": {
+      gap: "20px",
+    },
+  },
 });
 
 export const headerSection = style({
@@ -36,6 +26,12 @@ export const headerSection = style({
   alignItems: "flex-start",
   gap: "8px",
   width: "100%",
+
+  "@media": {
+    "(max-width: 768px)": {
+      alignItems: "center",
+    },
+  },
 });
 
 export const mainTitle = style({
@@ -43,6 +39,12 @@ export const mainTitle = style({
   fontSize: "36px",
   fontWeight: "400",
   color: "#000000",
+
+  "@media": {
+    "(max-width: 768px)": {
+      fontSize: "22px",
+    },
+  },
 });
 
 export const subtitle = style({
@@ -50,6 +52,22 @@ export const subtitle = style({
   fontWeight: "600",
   fontSize: "20px",
   color: "#757575",
+
+  "@media": {
+    "(max-width: 768px)": {
+      fontSize: "16px",
+    },
+  },
+});
+
+export const mobileBreak = style({
+  display: "none",
+
+  "@media": {
+    "screen and (max-width: 768px)": {
+      display: "inline",
+    },
+  },
 });
 
 export const map = style({

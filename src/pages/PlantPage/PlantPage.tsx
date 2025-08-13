@@ -4,6 +4,7 @@ import * as styles from "./PlantPage.css";
 import FlowerProgressCard from "../../components/FlowerProgressCard";
 import PlantMap from "../../components/PlantMap";
 import fetchPlantFlower from "../../controllers/plantFlower/api";
+import { useIsMobile } from "../../hooks/useWindowSize";
 
 export default function PlantPage2() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function PlantPage2() {
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [nameError, setNameError] = useState("");
   const randomLocationRef = useRef<(() => void) | null>(null);
+  const isMobile = useIsMobile();
 
   // 이름 유효성 검사
   const validateName = (name: string): string => {
@@ -104,8 +106,28 @@ export default function PlantPage2() {
     }
   };
 
+  const ButtonGroup = () => {
+    return (
+      <div className={styles.buttonGroup}>
+        <button
+          onClick={handlePlant}
+          className={`${styles.button} ${styles.secondaryButton}`}
+          disabled={!name.trim() || !userMarkerData}
+        >
+          이 위치에 심기
+        </button>
+        <button
+          onClick={handleRandomLocation}
+          className={`${styles.button} ${styles.primaryButton}`}
+        >
+          랜덤 위치
+        </button>
+      </div>
+    );
+  };
+
   return (
-    <div className={styles.section}>
+    <div className={styles.container}>
       {/* 기부 모달 */}
       {showDonationModal && (
         <div className={styles.modalOverlay} onClick={handleModalOverlayClick}>
@@ -113,9 +135,9 @@ export default function PlantPage2() {
             <div className={styles.modalHeader}>
               <h1 className={styles.modalTitle}>마음을 나누어주세요</h1>
               <p className={styles.modalDescription}>
-                이 캠페인은 자발적인 기부로 이어집니다
+                이 캠페인은 자발적인 기부로 이어집니다.
                 <br />
-                독립유공자 후손 지원을 위해 함께 해주세요
+                독립유공자 후손 지원을 위해 함께 해주세요.
               </p>
             </div>
             <div className={styles.modalActions}>
@@ -132,86 +154,70 @@ export default function PlantPage2() {
           </div>
         </div>
       )}
+      <div className={styles.titleContainer}>
+        <h1 className={styles.title}>당신의 이름으로 무궁화를 심어주세요</h1>
+        <p className={styles.instruction}>
+          지도 위에 원하는 위치를 클릭하여 꽃을 심어보세요!
+        </p>
+      </div>
+      <div className={styles.content}>
+        <div className={styles.leftSection}>
+          <div className={styles.formContainer}>
+            <div className={styles.inputContainer}>
+              <div className={styles.inputGroup}>
+                <label htmlFor="name" className={styles.label}>
+                  이름/별명
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="이름 또는 별명 (2~15자)"
+                  className={styles.nameInput}
+                  maxLength={15}
+                  minLength={2}
+                />
+                <div className={styles.nameInputError}>
+                  {nameError || <br />}
+                </div>
+              </div>
 
-      <div className={styles.container}>
-        <div className={styles.titleContainer}>
-          <h1 className={styles.title}>당신의 이름으로 무궁화를 심어주세요</h1>
-          <p className={styles.instruction}>
-            대한민국 지도 위 아무 곳이나 탭하여 위치를 선택해주세요.
+              <div className={styles.inputGroup}>
+                <label htmlFor="message" className={styles.label}>
+                  감사 편지 (선택)
+                </label>
+                <textarea
+                  id="message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="50자 이내로 감사의 마음을 남겨주세요"
+                  className={styles.messageInput}
+                  maxLength={50}
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <FlowerProgressCard />
+
+            {!isMobile && <ButtonGroup />}
+          </div>
+
+          <p className={styles.bottomInstruction}>
+            지도를 탭하면 임시 위치가 표시돼요.
+            <br />이 위치에 심기 버튼을 눌러 확정하세요!
           </p>
         </div>
-        <div className={styles.content}>
-          <div className={styles.leftSection}>
-            <div className={styles.formContainer}>
-              <div className={styles.inputContainer}>
-                <div className={styles.inputGroup}>
-                  <label htmlFor="name" className={styles.label}>
-                    이름/별명
-                  </label>
-                  <input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="이름 또는 별명 (2~15자)"
-                    className={styles.nameInput}
-                    maxLength={15}
-                    minLength={2}
-                  />
-                  <div className={styles.nameInputError}>
-                    {nameError || <br />}
-                  </div>
-                </div>
 
-                <div className={styles.inputGroup}>
-                  <label htmlFor="message" className={styles.label}>
-                    감사 편지 (선택)
-                  </label>
-                  <textarea
-                    id="message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="50자 이내로 감사의 마음을 남겨주세요"
-                    className={styles.messageInput}
-                    maxLength={50}
-                    rows={3}
-                  />
-                </div>
-              </div>
-
-              <FlowerProgressCard />
-
-              <div className={styles.buttonGroup}>
-                <button
-                  onClick={handlePlant}
-                  className={styles.plantButton}
-                  disabled={!name.trim() || !userMarkerData}
-                >
-                  이 위치에 심기
-                </button>
-                <button
-                  onClick={handleRandomLocation}
-                  className={styles.randomButton}
-                >
-                  랜덤 위치
-                </button>
-              </div>
-            </div>
-
-            <p className={styles.bottomInstruction}>
-              지도를 탭하면 임시 위치 표시가 생깁니다.
-              <br />이 위치에 심기 버튼을 눌러 확정하세요!
-            </p>
+        <div className={styles.rightSection}>
+          <div className={styles.mapPlaceholder}>
+            <PlantMap
+              setUserMarkerData={setUserMarkerData}
+              onRandomLocation={randomLocationRef}
+            />
           </div>
-
-          <div className={styles.rightSection}>
-            <div className={styles.mapPlaceholder}>
-              <PlantMap
-                setUserMarkerData={setUserMarkerData}
-                onRandomLocation={randomLocationRef}
-              />
-            </div>
-          </div>
+          {isMobile && <ButtonGroup />}
         </div>
       </div>
     </div>

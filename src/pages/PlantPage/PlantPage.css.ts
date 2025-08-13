@@ -1,23 +1,13 @@
 import { style } from "@vanilla-extract/css";
 import { vars } from "../../styles/vars.css";
 
-export const section = style({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  width: "100%",
-  height: "100dvh",
-  padding: "20px",
-  overflowY: "scroll",
-  boxSizing: "border-box",
-});
-
 export const container = style({
   display: "flex",
   flexDirection: "column",
-  justifyContent: "center",
   alignItems: "center",
-  height: "100%",
+  justifyContent: "center",
+  flexGrow: 1,
+  padding: "20px 0",
   boxSizing: "border-box",
 
   gap: "40px",
@@ -26,8 +16,11 @@ export const container = style({
 
   "@media": {
     "(max-width: 1280px)": {
-      maxWidth: "600px",
-      justifyContent: "flex-start",
+      maxWidth: "728px",
+    },
+
+    "(max-width: 768px)": {
+      gap: "24px",
     },
   },
 });
@@ -38,7 +31,12 @@ export const titleContainer = style({
   alignItems: "flex-start",
   gap: "8px",
   width: "100%",
-  // height: "200dvh",
+
+  "@media": {
+    "(max-width: 768px)": {
+      alignItems: "center",
+    },
+  },
 });
 
 export const title = style({
@@ -47,6 +45,12 @@ export const title = style({
   fontWeight: "400",
   color: vars.colors.ink,
   margin: 0,
+
+  "@media": {
+    "(max-width: 768px)": {
+      fontSize: "22px",
+    },
+  },
 });
 
 export const instruction = style({
@@ -55,6 +59,13 @@ export const instruction = style({
   fontWeight: "600",
   color: "rgba(117, 117, 117, 1)",
   margin: 0,
+
+  "@media": {
+    "(max-width: 768px)": {
+      fontSize: "16px",
+      whiteSpace: "nowrap",
+    },
+  },
 });
 
 export const content = style({
@@ -64,14 +75,13 @@ export const content = style({
   width: "100%",
 
   "@media": {
-    "(max-width: 768px)": {
-      flexDirection: "column-reverse",
-      gap: "24px",
+    "(max-width: 1280px)": {
+      gap: "72px",
     },
 
-    "(max-width: 1280px)": {
-      flexDirection: "column-reverse",
-      gap: "48px",
+    "(max-width: 768px)": {
+      flexDirection: "column",
+      gap: "8px",
     },
   },
 });
@@ -86,7 +96,7 @@ export const leftSection = style({
 
   "@media": {
     "(max-width: 1280px)": {
-      maxWidth: "100%",
+      maxWidth: "320px",
     },
   },
 });
@@ -97,6 +107,12 @@ export const formContainer = style({
   gap: "24px",
   width: "100%",
   alignItems: "center",
+
+  "@media": {
+    "(max-width: 768px)": {
+      flexDirection: "column-reverse",
+    },
+  },
 });
 
 export const inputContainer = style({
@@ -119,6 +135,12 @@ export const label = style({
   fontSize: "16px",
   fontWeight: "600",
   color: vars.colors.ink,
+
+  "@media": {
+    "(max-width: 768px)": {
+      fontSize: "14px",
+    },
+  },
 });
 
 export const nameInput = style({
@@ -182,12 +204,9 @@ export const buttonGroup = style({
   width: "100%",
 });
 
-export const plantButton = style({
+export const button = style({
   width: "100%",
-  padding: "16px 24px",
-  backgroundColor: "rgba(255, 230, 239, 1)",
-  border: `1px solid ${vars.colors.primary}`,
-  color: vars.colors.primary,
+  padding: "10px",
   borderRadius: "10px",
   fontSize: "18px",
   fontWeight: "400",
@@ -197,7 +216,6 @@ export const plantButton = style({
   boxSizing: "border-box",
 
   ":hover": {
-    backgroundColor: "rgba(250, 207, 203, 0.8)",
     transform: "translateY(-1px)",
   },
 
@@ -214,26 +232,21 @@ export const plantButton = style({
   },
 });
 
-export const randomButton = style({
-  width: "100%",
-  padding: "16px 24px",
+export const secondaryButton = style({
+  backgroundColor: "rgba(255, 230, 239, 1)",
+  border: `1px solid ${vars.colors.primary}`,
+  color: vars.colors.primary,
+  ":hover": {
+    backgroundColor: "rgba(250, 207, 203, 0.8)",
+  },
+});
+
+export const primaryButton = style({
   backgroundColor: vars.colors.primary,
   color: "white",
   border: "none",
-  borderRadius: "10px",
-  fontSize: "18px",
-  fontWeight: "400",
-  fontFamily: vars.fonts.yeongnamnu,
-  cursor: "pointer",
-  transition: "all 0.2s ease",
-
   ":hover": {
     backgroundColor: "rgba(216, 73, 63, 0.9)",
-    transform: "translateY(-1px)",
-  },
-
-  ":active": {
-    transform: "translateY(0)",
   },
 });
 
@@ -244,13 +257,21 @@ export const bottomInstruction = style({
   fontWeight: "600",
   margin: 0,
   textAlign: "left",
+
+  "@media": {
+    "(max-width: 768px)": {
+      textAlign: "center",
+    },
+  },
 });
 
 export const rightSection = style({
   flex: "1",
   display: "flex",
+  flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
+  gap: "24px",
 });
 
 export const mapPlaceholder = style({
@@ -261,7 +282,12 @@ export const mapPlaceholder = style({
 
   "@media": {
     "(max-width: 1280px)": {
-      height: "600px",
+      height: "448px",
+    },
+
+    "(max-width: 768px)": {
+      borderRadius: "8px",
+      height: "360px",
     },
   },
 });
@@ -277,6 +303,7 @@ export const modalOverlay = style({
   alignItems: "center",
   justifyContent: "center",
   zIndex: 1000,
+  padding: "20px",
 });
 
 export const modal = style({
@@ -290,12 +317,25 @@ export const modal = style({
   gap: "22px",
   display: "flex",
   flexDirection: "column",
+
+  "@media": {
+    "(max-width: 768px)": {
+      padding: "28px 16px",
+    },
+  },
 });
 
 export const modalHeader = style({
   display: "flex",
   flexDirection: "column",
+  alignItems: "center",
   gap: "16px",
+
+  "@media": {
+    "(max-width: 768px)": {
+      fontSize: "12px",
+    },
+  },
 });
 
 export const modalTitle = style({
@@ -303,6 +343,12 @@ export const modalTitle = style({
   fontSize: "24px",
   fontWeight: "400",
   color: "rgba(0, 0, 0, 1)",
+
+  "@media": {
+    "(max-width: 768px)": {
+      fontSize: "20px",
+    },
+  },
 });
 
 export const modalDescription = style({
@@ -310,6 +356,14 @@ export const modalDescription = style({
   fontSize: "18px",
   color: "rgba(0, 0, 0, 1)",
   fontWeight: "600",
+
+  "@media": {
+    "(max-width: 768px)": {
+      fontSize: "14px",
+      whiteSpace: "nowrap",
+      fontWeight: "500",
+    },
+  },
 });
 
 export const modalActions = style({
@@ -317,6 +371,12 @@ export const modalActions = style({
   flexDirection: "column",
   gap: "12px",
   alignItems: "center",
+
+  "@media": {
+    "(max-width: 768px)": {
+      gap: "8px",
+    },
+  },
 });
 
 export const donationButton = style({
@@ -351,5 +411,11 @@ export const closeButton = style({
 
   ":hover": {
     color: vars.colors.ink,
+  },
+
+  "@media": {
+    "(max-width: 768px)": {
+      fontSize: "12px",
+    },
   },
 });

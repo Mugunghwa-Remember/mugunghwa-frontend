@@ -426,7 +426,6 @@ const PlantMap = ({
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "#f5f5f5",
-          borderRadius: "16px",
           overflow: "hidden",
         }}
         id="map"

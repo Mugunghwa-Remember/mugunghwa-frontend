@@ -1,27 +1,11 @@
 import { style } from "@vanilla-extract/css";
 import { vars } from "../../styles/vars.css";
-import backgroundImage from "../../assets/index_background.png";
 import resultCardBackgroundImage from "../../assets/result_card_background.png";
 import taegeukgiImage from "../../assets/taegeukgi.png";
 import resultCardMapFrameImage from "../../assets/result_card_map_frame.png";
 import resultCardMessageFrameImage from "../../assets/result_card_message_frame.png";
 import resultFlowerImage from "../../assets/result_flower.png";
 import resultCardLineImage from "../../assets/result_card_line.png";
-
-export const section = style({
-  display: "flex",
-  flexDirection: "column",
-  width: "100%",
-  height: "100dvh",
-  alignItems: "center",
-  overflowY: "auto",
-  backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(${backgroundImage})`,
-  backgroundSize: "cover",
-  backgroundPosition: "center",
-  backgroundRepeat: "no-repeat",
-  padding: "0 20px",
-  boxSizing: "border-box",
-});
 
 export const container = style({
   display: "flex",
@@ -34,6 +18,12 @@ export const container = style({
   width: "100%",
   padding: "20px 0",
   boxSizing: "border-box",
+
+  "@media": {
+    "(max-width: 768px)": {
+      gap: "24px",
+    },
+  },
 });
 
 // Header styles
@@ -49,6 +39,12 @@ export const mainTitle = style({
   fontSize: "40px",
   fontWeight: "400",
   color: vars.colors.primary,
+
+  "@media": {
+    "(max-width: 768px)": {
+      fontSize: "28px",
+    },
+  },
 });
 
 export const subtitle = style({
@@ -56,12 +52,19 @@ export const subtitle = style({
   fontSize: "24px",
   color: "#404040",
   fontWeight: "400",
+
+  "@media": {
+    "(max-width: 768px)": {
+      fontSize: "20px",
+    },
+  },
 });
 
 // Card placeholder styles
 export const cardContainer = style({
   width: "360px",
-  height: "640px",
+  height: "auto",
+  aspectRatio: "9/16",
   backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(${resultCardBackgroundImage})`,
   backgroundSize: "cover",
   backgroundPosition: "center",
@@ -72,6 +75,14 @@ export const cardContainer = style({
   gap: "36px",
   alignItems: "center",
   padding: "28px 18px",
+
+  "@media": {
+    "(max-width: 768px)": {
+      maxWidth: "320px",
+      width: "100%",
+      gap: "24px",
+    },
+  },
 });
 
 export const cardTitle = style({
@@ -81,6 +92,13 @@ export const cardTitle = style({
   backgroundSize: "cover",
   backgroundPosition: "center",
   backgroundRepeat: "no-repeat",
+
+  "@media": {
+    "(max-width: 768px)": {
+      width: "173px",
+      height: "90px",
+    },
+  },
 });
 
 export const cardContent = style({
@@ -92,7 +110,9 @@ export const cardContent = style({
 
 export const cardMapContainer = style({
   width: "250px",
-  height: "170px",
+  height: "auto",
+  aspectRatio: "25/17",
+
   gap: "12px",
   position: "relative",
   padding: "10px",
@@ -188,6 +208,12 @@ export const cardFooter = style({
   fontSize: "18px",
   fontWeight: "400",
   color: "#433B2A",
+
+  "@media": {
+    "(max-width: 768px)": {
+      fontSize: "16px",
+    },
+  },
 });
 
 export const cardFooterLine = style({
@@ -251,5 +277,44 @@ export const shareButton = style({
   border: "none",
   ":hover": {
     backgroundColor: "rgba(216, 73, 63, 0.9)",
+  },
+});
+
+export const exploreButton = style({
+  position: "fixed",
+  bottom: "50px",
+  right: "50px",
+  display: "flex",
+  alignItems: "center",
+  gap: "10px",
+  borderRadius: "999px",
+  backgroundColor: "white",
+  padding: "12px 20px",
+  cursor: "pointer",
+  boxShadow: "0px 4px 20px 4px rgba(0, 0, 0, 0.1)",
+
+  "@media": {
+    "(max-width: 768px)": {
+      position: "static",
+      padding: "12px",
+      marginLeft: "auto",
+    },
+  },
+});
+
+export const exploreButtonLogo = style({
+  width: "32px",
+});
+
+export const exploreButtonText = style({
+  fontFamily: vars.fonts.pretendard,
+  fontSize: "18px",
+  fontWeight: "600",
+  color: vars.colors.primary,
+
+  "@media": {
+    "(max-width: 768px)": {
+      display: "none",
+    },
   },
 });
