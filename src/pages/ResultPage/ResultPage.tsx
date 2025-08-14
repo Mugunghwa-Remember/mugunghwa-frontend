@@ -99,7 +99,7 @@ const ResultPage = () => {
           description:
             "당신의 무궁화가 피었습니다. 이 순간을 함께 나누어보세요.",
           // imageUrl: "",
-          imageUrl: "/main-image.png",
+          imageUrl: "https://i.imgur.com/9EoYc97.png",
           link: {
             mobileWebUrl: window.location.hostname,
             webUrl: window.location.hostname,
