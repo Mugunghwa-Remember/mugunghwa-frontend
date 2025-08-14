@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   KOREA_LAND_BOUNDARY,
+  KOREA_MAP_BOUNDARY,
   MAP_DEFAULT_OPTIONS,
 } from "../constants/koreaMap";
 import {
@@ -9,7 +10,7 @@ import {
   getFlowerHTML,
   smoothMoveTo,
 } from "../utils/FlowerMap";
-import { isPointInPolygon } from "../utils/Point";
+import { generateRandomPointInPolygon, isPointInPolygon } from "../utils/Point";
 import type {
   ClusteredExistingFlowers,
   ClusteredExistingFlowersCluster,
@@ -19,7 +20,9 @@ import type {
 } from "../controllers/existingFlowers/types";
 import { getExistingFlowersData } from "../controllers/existingFlowers/clustering";
 import { fetchExistingFlowers } from "../controllers/existingFlowers/api";
-
+import * as styles from "./useFlower.css";
+import fetchFlowerProgress from "../controllers/flowerProgress/api";
+import { safeTrack } from "../utils/mixpanel";
 interface SubFlowerRef {
   parent: naver.maps.Marker;
   childMarkers: naver.maps.Marker[];
@@ -30,23 +33,33 @@ const useFlowerMap = ({
   mapOptions,
   enableClickEvent = true,
   enableUserMarker = false,
+  onRandomLocation,
 }: {
   mapOptions?: naver.maps.MapOptions;
   enableClickEvent?: boolean;
   enableUserMarker?: boolean;
+  onRandomLocation?: React.RefObject<(() => void) | null>;
 }) => {
   const mapRef = useRef<naver.maps.Map | null>(null);
   const userMarkerRef = useRef<naver.maps.Marker | null>(null);
   const existingFlowersRef = useRef<naver.maps.Marker[]>([]);
   const SubFlowerRef = useRef<SubFlowerRef | null>(null);
+  const flowerMessageRef = useRef<{
+    id: string;
+    marker: naver.maps.Marker;
+  } | null>(null);
+  const targetFlowerCountRef = useRef<number>(0);
 
   const [userMarkerLocation, setUserMarkerLocation] = useState<{
     lat: number;
     lng: number;
   } | null>(null);
-  console.log(userMarkerLocation);
   const [zoomData, setZoomData] = useState<ZoomData | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [error, setError] = useState<{
+    message: string;
+    timestamp: Date;
+  } | null>(null);
 
   const loadMarkers = async () => {
     if (!mapRef.current) return;
@@ -61,6 +74,16 @@ const useFlowerMap = ({
         maxlng: bounds.getMax().x,
       });
     }
+  };
+
+  // 에러 처리 함수
+  const handleError = (errorMessage: string) => {
+    setError({ message: errorMessage, timestamp: new Date() });
+    console.error("Map Error:", errorMessage);
+  };
+
+  const clearError = () => {
+    setError(null);
   };
 
   // 마커 관리
@@ -87,90 +110,69 @@ const useFlowerMap = ({
     SubFlowerRef.current = null;
   };
 
+  const resetFlowerMessage = () => {
+    if (!flowerMessageRef.current) return;
+    flowerMessageRef.current.marker.setMap(null);
+    flowerMessageRef.current = null;
+  };
+
   // 사용자 마커 추가 함수
   const addUserMarker = (lat: number, lng: number) => {
     if (!isPointInPolygon([lat, lng], KOREA_LAND_BOUNDARY)) {
-      // showToast("한국 영역 내에서만 무궁화를 심을 수 있습니다.");
+      handleError("한국 영역 내에서만 심을 수 있어요");
       return;
     }
 
-    if (!mapRef.current) return;
+    if (!mapRef.current) {
+      handleError("지도가 초기화되지 않았습니다.");
+      return;
+    }
 
     // 기존 사용자 마커가 있으면 제거
     if (userMarkerRef.current) {
       userMarkerRef.current.setMap(null);
     }
 
-    const marker = createMarker(
-      mapRef.current,
-      new naver.maps.LatLng(lat, lng),
-      `<div style="position: relative; display: flex; align-items: center; justify-content: center;">
-        <div class="bloom" style="
-          background: #d8493f;
-          border-radius: 50%;
-          width: 24px;
-          height: 24px;
-          border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-size: 14px;
-          font-weight: bold;
-          cursor: pointer;
-          box-sizing: border-box;
-          transform-origin: center;
-          position: absolute;
-        ">🌸</div>
-      </div>`,
-      24,
-      1000
-    );
+    try {
+      const marker = createMarker(
+        mapRef.current,
+        new naver.maps.LatLng(lat, lng),
+        `<div class="${styles.markerContainer}">
+          <div class="${styles.userMarker} bloom">🌸</div>
+        </div>`,
+        24,
+        1000
+      );
 
-    if (enableClickEvent) {
-      // 마커 클릭 이벤트 - 마커 제거
-      naver.maps.Event.addListener(marker, "click", () => {
-        marker.setMap(null);
-        userMarkerRef.current = null;
-        setUserMarkerLocation(null);
-      });
+      if (enableClickEvent) {
+        // 마커 클릭 이벤트 - 마커 제거
+        naver.maps.Event.addListener(marker, "click", () => {
+          marker.setMap(null);
+          userMarkerRef.current = null;
+          setUserMarkerLocation(null);
+        });
+      }
+
+      userMarkerRef.current = marker;
+      setUserMarkerLocation({ lat, lng });
+      smoothMoveTo(mapRef.current, lat, lng);
+      clearError(); // 성공 시 에러 클리어
+      return marker;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "마커 생성 중 오류가 발생했습니다.";
+      handleError(errorMessage);
+      return null;
     }
-
-    userMarkerRef.current = marker;
-    setUserMarkerLocation({ lat, lng });
-    smoothMoveTo(mapRef.current, lat, lng);
-    return marker;
-  };
-
-  // 마커 생성 및 이벤트 설정을 위한 헬퍼 함수들
-  const createFlowerMarker = (
-    flower: ClusteredExistingFlowers,
-    count: number,
-    maxCount: number
-  ) => {
-    if (!mapRef.current) return;
-
-    const size = clusterSize(count, maxCount);
-    const html = getFlowerHTML(count, size);
-
-    const marker = new naver.maps.Marker({
-      position: new naver.maps.LatLng(flower.latitude, flower.longitude),
-      map: mapRef.current,
-      icon: {
-        content: html,
-        size: new naver.maps.Size(size, size),
-        anchor: new naver.maps.Point(0, 0),
-      },
-    });
-
-    return marker;
   };
 
   const handleClusterClick = (flower: ClusteredExistingFlowers) => {
     if (!mapRef.current) return;
 
     resetSubFlower();
+    resetFlowerMessage();
     resetExistingFlowers();
     const center = new naver.maps.LatLng(flower.latitude, flower.longitude);
     mapRef.current.zoomBy(1, center, true);
@@ -178,10 +180,10 @@ const useFlowerMap = ({
 
   const handleLeafClick = (
     marker: naver.maps.Marker,
-    flower: ClusteredExistingFlowers,
-    maxCount: number
+    flower: ClusteredExistingFlowers
   ) => {
     resetSubFlower();
+    resetFlowerMessage();
 
     const beforeIcon = marker.getIcon() as naver.maps.HtmlIcon;
     const html = beforeIcon.content as string;
@@ -206,8 +208,7 @@ const useFlowerMap = ({
       // 자식 마커들과 선들 생성
       const { childMarkers, childLines } = createChildElements(
         leafData.children,
-        flower,
-        maxCount
+        flower
       );
 
       SubFlowerRef.current.childMarkers = childMarkers;
@@ -217,8 +218,7 @@ const useFlowerMap = ({
 
   const createChildElements = (
     children: ClusteredExistingFlowers[],
-    parentFlower: ClusteredExistingFlowers,
-    maxCount: number
+    parent: ClusteredExistingFlowers
   ) => {
     const childMarkers: naver.maps.Marker[] = [];
     const childLines: naver.maps.Polyline[] = [];
@@ -229,7 +229,7 @@ const useFlowerMap = ({
       const childLine = new naver.maps.Polyline({
         map: mapRef.current,
         path: [
-          new naver.maps.LatLng(parentFlower.latitude, parentFlower.longitude),
+          new naver.maps.LatLng(parent.latitude, parent.longitude),
           new naver.maps.LatLng(child.latitude, child.longitude),
         ],
         strokeColor: "#000",
@@ -237,43 +237,117 @@ const useFlowerMap = ({
         strokeOpacity: 0.5,
       });
 
-      // 자식 마커 생성
-      const count =
-        child.type === "CLUSER"
-          ? (child.data as ClusteredExistingFlowersCluster).count
-          : 1;
-      const size = clusterSize(count, maxCount);
-      const html = getFlowerHTML(count, size);
+      const childMarker = createFlowerMarker(child, true);
 
-      const childMarker = new naver.maps.Marker({
-        position: new naver.maps.LatLng(child.latitude, child.longitude),
-        map: mapRef.current,
-        icon: {
-          content: html,
-          size: new naver.maps.Size(size, size),
-          anchor: new naver.maps.Point(0, 0),
-        },
-      });
-
-      childMarkers.push(childMarker);
+      if (childMarker) {
+        childMarkers.push(childMarker);
+      }
       childLines.push(childLine);
     });
 
     return { childMarkers, childLines };
   };
 
-  const handleFlowerClick = (flower: ClusteredExistingFlowers) => {
+  const handleFlowerClick = (
+    flower: ClusteredExistingFlowers,
+    isSubFlower?: boolean
+  ) => {
     const flowerData = flower.data as ClusteredExistingFlowersFlower;
-    console.log(flowerData.name, flowerData.message, flowerData.plantedAt);
     smoothMoveTo(mapRef.current, flower.latitude, flower.longitude);
+
+    if (!mapRef.current) return;
+
+    if (!isSubFlower) {
+      resetSubFlower();
+    }
+
+    const beforeFlowerId = flowerMessageRef.current?.id;
+    resetFlowerMessage();
+    if (beforeFlowerId === flower.id) return;
+
+    const flowerMessageMarker = new naver.maps.Marker({
+      position: new naver.maps.LatLng(flower.latitude, flower.longitude),
+      map: mapRef.current,
+      icon: {
+        content: `
+          <div class="${styles.markerContainer} bloom">
+            ${
+              flowerData.message.trim() &&
+              `<div class="${styles.flowerMessage}">
+                ${flowerData.message}
+              </div>`
+            }
+            <div class="${styles.flowerName}">
+              ${flowerData.name}
+            </div>
+          </div>
+        `,
+        size: new naver.maps.Size(0, 0),
+        anchor: new naver.maps.Point(0, 0),
+      },
+      zIndex: 1000,
+    });
+
+    flowerMessageRef.current = {
+      id: flower.id,
+      marker: flowerMessageMarker,
+    };
+  };
+
+  // 마커 생성 및 이벤트 설정을 위한 헬퍼 함수들
+  const createFlowerMarker = (
+    flower: ClusteredExistingFlowers,
+    isSubFlower?: boolean
+  ) => {
+    if (!mapRef.current) return;
+
+    const count =
+      flower.type === "CLUSER"
+        ? (flower.data as ClusteredExistingFlowersCluster).count
+        : flower.type === "LEAF"
+        ? (flower.data as ClusteredExistingFlowersLeaf).count
+        : 1;
+    const size = clusterSize(count, targetFlowerCountRef.current);
+    const html = getFlowerHTML(count, size);
+
+    const marker = new naver.maps.Marker({
+      position: new naver.maps.LatLng(flower.latitude, flower.longitude),
+      map: mapRef.current,
+      icon: {
+        content: html,
+        size: new naver.maps.Size(size, size),
+        anchor: new naver.maps.Point(0, 0),
+      },
+    });
+
+    if (enableClickEvent) {
+      if (flower.type === "CLUSER") {
+        naver.maps.Event.addListener(marker, "click", () =>
+          handleClusterClick(flower)
+        );
+      } else if (flower.type === "LEAF") {
+        naver.maps.Event.addListener(marker, "click", () =>
+          handleLeafClick(marker, flower)
+        );
+      } else if (flower.type === "FLOWER") {
+        naver.maps.Event.addListener(marker, "click", () =>
+          handleFlowerClick(flower, isSubFlower)
+        );
+      }
+    }
+
+    return marker;
   };
 
   useEffect(() => {
     if (!isMounted) return;
 
     (async () => {
-      const data = await fetchExistingFlowers();
-      console.log(data);
+      targetFlowerCountRef.current = await fetchFlowerProgress().then((res) => {
+        return res.data.targetCount;
+      });
+
+      await fetchExistingFlowers();
       loadMarkers();
     })();
 
@@ -285,11 +359,13 @@ const useFlowerMap = ({
     if (enableClickEvent) {
       if (enableUserMarker) {
         naver.maps.Event.addListener(newMap, "click", (e) => {
+          resetFlowerMessage();
           addUserMarker(e.coord.lat(), e.coord.lng());
         });
       }
 
       naver.maps.Event.addListener(newMap, "zoomstart", () => {
+        resetFlowerMessage();
         resetSubFlower();
         resetExistingFlowers();
       });
@@ -302,6 +378,23 @@ const useFlowerMap = ({
 
     mapRef.current = newMap;
   }, [isMounted]);
+
+  useEffect(() => {
+    if (!onRandomLocation) return;
+
+    onRandomLocation.current = () => {
+      safeTrack("plant_map_random_location_generated");
+
+      const randomLocation = generateRandomPointInPolygon(
+        KOREA_LAND_BOUNDARY,
+        [KOREA_MAP_BOUNDARY[0][0], KOREA_MAP_BOUNDARY[0][1]],
+        [KOREA_MAP_BOUNDARY[1][0], KOREA_MAP_BOUNDARY[1][1]]
+      );
+      if (randomLocation) {
+        addUserMarker(randomLocation[0], randomLocation[1]);
+      }
+    };
+  }, [onRandomLocation]);
 
   useEffect(() => {
     if (!zoomData) return;
@@ -318,17 +411,6 @@ const useFlowerMap = ({
       });
 
       const newFlowers: naver.maps.Marker[] = [];
-      const maxCount = Math.max(
-        ...data.flowers.map((flower) =>
-          flower
-            ? flower.type === "CLUSER"
-              ? (flower.data as ClusteredExistingFlowersCluster).count
-              : flower.type === "LEAF"
-              ? (flower.data as ClusteredExistingFlowersLeaf).count
-              : 1
-            : 0
-        )
-      );
 
       // 각 꽃 타입별로 마커 생성 및 이벤트 설정
       data.flowers.forEach((flower: ClusteredExistingFlowers | null) => {
@@ -342,54 +424,10 @@ const useFlowerMap = ({
           return;
         }
 
-        // 꽃 타입에 따른 처리
-        const flowerHandlers = {
-          CLUSER: () => {
-            const clusterData = flower.data as ClusteredExistingFlowersCluster;
-            const marker = createFlowerMarker(
-              flower,
-              clusterData.count,
-              maxCount
-            );
+        const marker = createFlowerMarker(flower);
+        if (!marker) return;
 
-            if (enableClickEvent) {
-              naver.maps.Event.addListener(marker, "click", () =>
-                handleClusterClick(flower)
-              );
-            }
-
-            return marker;
-          },
-          LEAF: () => {
-            const leafData = flower.data as ClusteredExistingFlowersLeaf;
-            const marker = createFlowerMarker(flower, leafData.count, maxCount);
-            if (!marker) return;
-
-            if (enableClickEvent) {
-              naver.maps.Event.addListener(marker, "click", () =>
-                handleLeafClick(marker, flower, maxCount)
-              );
-            }
-
-            return marker;
-          },
-          FLOWER: () => {
-            const marker = createFlowerMarker(flower, 1, maxCount);
-
-            if (enableClickEvent) {
-              naver.maps.Event.addListener(marker, "click", () =>
-                handleFlowerClick(flower)
-              );
-            }
-
-            return marker;
-          },
-        };
-
-        const marker = flowerHandlers[flower.type]?.();
-        if (marker) {
-          newFlowers.push(marker);
-        }
+        newFlowers.push(marker);
       });
 
       // 사용되지 않는 기존 마커들 제거
@@ -402,7 +440,11 @@ const useFlowerMap = ({
     setIsMounted(true);
   }, []);
 
-  return [mapRef];
+  return {
+    mapRef,
+    userMarkerLocation,
+    error: error,
+  };
 };
 
 export default useFlowerMap;

@@ -5,7 +5,10 @@ import type { PointFeature } from "supercluster";
 import { API_CONFIG } from "../config";
 import type { ExistingFlower } from "./types";
 
-export const fetchExistingFlowers = async () => {
+export const fetchExistingFlowers = async (): Promise<{
+  success: boolean;
+  data: ExistingFlower[];
+}> => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
   const mockEnabled = false;
@@ -35,8 +38,6 @@ export const fetchExistingFlowers = async () => {
 
           return data;
         })());
-
-    console.log(data);
 
     const points: Feature<Point>[] = data.map((flower: ExistingFlower) => ({
       type: "Feature",

@@ -22,8 +22,6 @@ const AuthPage = () => {
     const code = params.get("code");
 
     if (code) {
-      console.log("인가 코드:", code);
-
       safeTrack("kakao_auth_code_received", {
         has_code: true,
         code_length: code.length,
@@ -33,27 +31,19 @@ const AuthPage = () => {
         redirectUri: window.location.origin + "/oauth",
       })
         .then((res) => {
-          console.log(res);
-          if (res.success) {
-            safeTrack("kakao_login_success", {
-              has_access_token: !!res.data.accessToken,
-              has_refresh_token: !!res.data.refreshToken,
-              has_email: !!res.data.email,
-              provider: "kakao",
-            });
+          safeTrack("kakao_login_success", {
+            has_access_token: !!res.data.accessToken,
+            has_refresh_token: !!res.data.refreshToken,
+            has_email: !!res.data.email,
+            provider: "kakao",
+          });
 
-            localStorage.setItem("accessToken", res.data.accessToken);
-            localStorage.setItem("refreshToken", res.data.refreshToken);
-            localStorage.setItem("email", res.data.email);
-            localStorage.setItem("provider", "kakao");
+          localStorage.setItem("accessToken", res.data.accessToken);
+          localStorage.setItem("refreshToken", res.data.refreshToken);
+          localStorage.setItem("email", res.data.email);
+          localStorage.setItem("provider", "kakao");
 
-            navigate("/plant", { replace: true });
-          } else {
-            safeTrack("kakao_login_failed", {
-              error: res.error || "unknown_error",
-              provider: "kakao",
-            });
-          }
+          navigate("/plant", { replace: true });
         })
         .catch((error) => {
           safeTrack("kakao_login_error", {

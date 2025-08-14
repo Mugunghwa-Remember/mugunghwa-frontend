@@ -21,7 +21,6 @@ export default function FlowerProgressCard() {
       safeTrack("flower_progress_data_request");
 
       const response = await fetchFlowerProgress();
-      console.log(response);
       setData(response.data);
 
       safeTrack("flower_progress_data_success", {

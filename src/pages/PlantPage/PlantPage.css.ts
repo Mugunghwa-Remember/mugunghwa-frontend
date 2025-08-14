@@ -281,11 +281,12 @@ export const rightSection = style({
   },
 });
 
-export const mapPlaceholder = style({
+export const mapContainer = style({
   width: "100%",
   height: "100%",
   borderRadius: "16px",
   overflow: "hidden",
+  position: "relative",
 
   "@media": {
     "(max-width: 1280px)": {
@@ -297,6 +298,30 @@ export const mapPlaceholder = style({
       height: "360px",
     },
   },
+});
+
+export const mapPlaceholder = style({
+  width: "100%",
+  height: "100%",
+});
+
+export const toast = style({
+  position: "absolute",
+  bottom: "20px",
+  left: "50%",
+  transform: "translateX(-50%)",
+  backgroundColor: "rgba(0, 0, 0, 0.8)",
+  color: "white",
+  padding: "12px 20px",
+  borderRadius: "8px",
+  fontSize: "14px",
+  fontFamily: "Pretendard, sans-serif",
+  fontWeight: "500",
+  zIndex: 1001,
+  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+  animation: "slideUp 0.3s ease-out",
+  transition: "opacity 0.3s ease-out",
+  whiteSpace: "nowrap",
 });
 
 export const modalOverlay = style({

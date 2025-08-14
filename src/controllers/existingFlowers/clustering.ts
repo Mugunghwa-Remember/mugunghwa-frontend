@@ -20,10 +20,23 @@ export const clusterIndex: {
   updatedAt: Date | null;
 } = { body: null, updatedAt: null };
 
+// 클러스터 타입 결정 함수
+function determineClusterType(
+  cluster: any,
+  zoom: number
+): "FLOWER" | "CLUSER" | "LEAF" {
+  const pointCount = cluster.properties.point_count;
+  if (!pointCount) return "FLOWER";
+  if (zoom === MAX_ZOOM) return "LEAF";
+
+  return pointCount <= 10 && zoom >= MAX_ZOOM - 1 ? "LEAF" : "CLUSER";
+}
+
 // 클러스터 데이터 변환 함수
 function transformClusterToFlower(
   cluster: any,
-  type: "FLOWER" | "CLUSER" | "LEAF"
+  type: "FLOWER" | "CLUSER" | "LEAF",
+  zoom: number
 ): ClusteredExistingFlowers | null {
   const baseData = {
     id: "",
@@ -54,28 +67,31 @@ function transformClusterToFlower(
       } as ClusteredExistingFlowers;
 
     case "LEAF": {
-      const children = clusterIndex.body
-        .getChildren(cluster.properties.cluster_id)
-        .map((child) => {
-          const childType = child.properties.point_count ? "CLUSER" : "FLOWER";
-          return {
-            id:
-              childType === "FLOWER"
-                ? `flower_${child.properties.id}`
-                : `cluster_${child.properties.cluster_id}`,
-            type: childType,
-            latitude: child.geometry.coordinates[1],
-            longitude: child.geometry.coordinates[0],
-            data:
-              childType === "FLOWER"
-                ? {
-                    name: child.properties.name,
-                    message: child.properties.message,
-                    plantedAt: child.properties.plantedAt,
-                  }
-                : { count: child.properties.point_count },
-          };
-        });
+      const leaves =
+        zoom !== MAX_ZOOM
+          ? clusterIndex.body.getChildren(cluster.properties.cluster_id)
+          : clusterIndex.body.getLeaves(cluster.properties.cluster_id, 32);
+
+      const children = leaves.map((child) => {
+        const childType = child.properties.point_count ? "CLUSER" : "FLOWER";
+        return {
+          id:
+            childType === "FLOWER"
+              ? `flower_${child.properties.id}`
+              : `cluster_${child.properties.cluster_id}`,
+          type: childType,
+          latitude: child.geometry.coordinates[1],
+          longitude: child.geometry.coordinates[0],
+          data:
+            childType === "FLOWER"
+              ? {
+                  name: child.properties.name,
+                  message: child.properties.message,
+                  plantedAt: child.properties.plantedAt,
+                }
+              : { count: child.properties.point_count },
+        };
+      });
 
       return {
         ...baseData,
@@ -87,18 +103,6 @@ function transformClusterToFlower(
       } as ClusteredExistingFlowers;
     }
   }
-}
-
-// 클러스터 타입 결정 함수
-function determineClusterType(
-  cluster: any,
-  zoom: number
-): "FLOWER" | "CLUSER" | "LEAF" {
-  if (!cluster.properties.point_count) return "FLOWER";
-
-  return cluster.properties.point_count <= 10 || zoom === MAX_ZOOM
-    ? "LEAF"
-    : "CLUSER";
 }
 
 export async function getExistingFlowersData(
@@ -119,7 +123,7 @@ export async function getExistingFlowersData(
 
   const flowers = flowerClusters.map((cluster) => {
     const type = determineClusterType(cluster, zoom);
-    return transformClusterToFlower(cluster, type);
+    return transformClusterToFlower(cluster, type, zoom);
   });
 
   return {

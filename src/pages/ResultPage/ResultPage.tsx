@@ -159,10 +159,10 @@ const ResultPage = () => {
     }
   };
 
-  const [mapRef] = useFlowerMap({
+  const { mapRef } = useFlowerMap({
     mapOptions: {
       center: new naver.maps.LatLng(flowerLocation.lat, flowerLocation.lng),
-      zoom: 13,
+      zoom: 16,
       draggable: false,
       scrollWheel: false,
       scaleControl: false,

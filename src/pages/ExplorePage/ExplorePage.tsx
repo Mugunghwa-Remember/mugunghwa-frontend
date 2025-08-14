@@ -13,7 +13,10 @@ const ExplorePage = () => {
     safeTrack("explore_map_loaded");
   }, []);
 
-  const [mapRef] = useFlowerMap({});
+  const { mapRef } = useFlowerMap({
+    enableClickEvent: true,
+    enableUserMarker: false,
+  });
 
   // 지도 이벤트 tracking을 위한 useEffect
   useEffect(() => {
@@ -27,8 +30,8 @@ const ExplorePage = () => {
       if (bounds) {
         safeTrack("explore_map_move", {
           center: {
-            lat: map.getCenter().lat(),
-            lng: map.getCenter().lng(),
+            lat: map.getCenter().y,
+            lng: map.getCenter().x,
           },
           zoom: map.getZoom(),
           bounds: {
@@ -49,20 +52,18 @@ const ExplorePage = () => {
         safeTrack("explore_map_zoom", {
           zoom: map.getZoom(),
           center: {
-            lat: map.getCenter().lat(),
-            lng: map.getCenter().lng(),
+            lat: map.getCenter().y,
+            lng: map.getCenter().x,
           },
         });
       }
     );
 
     return () => {
-      naver.maps.Event.removeListener(map, "dragend", moveListener);
-      naver.maps.Event.removeListener(map, "zoom_changed", zoomListener);
+      naver.maps.Event.removeListener(moveListener);
+      naver.maps.Event.removeListener(zoomListener);
     };
   }, [mapRef]);
-
-  console.log(mapRef);
 
   return (
     <div className={styles.container}>

@@ -26,10 +26,9 @@ export const getFlowerHTML = (
 };
 
 export function clusterSize(count: number, maxCount: number) {
-  console.log(maxCount);
   const MIN = 42;
   const MAX = 72;
-  const REF = 800000;
+  const REF = maxCount || 800000;
   const t = Math.min(1, Math.log2(count) / Math.log2(REF));
   const size = MIN + (MAX - MIN) * t;
   return Math.round(size);

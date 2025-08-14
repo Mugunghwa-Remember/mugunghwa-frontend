@@ -2,10 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import * as styles from "./PlantPage.css";
 import FlowerProgressCard from "../../components/FlowerProgressCard";
-import PlantMap from "../../components/PlantMap";
 import fetchPlantFlower from "../../controllers/plantFlower/api";
 import { useIsMobile } from "../../hooks/useWindowSize";
 import { safeTrack } from "../../utils/mixpanel";
+import useFlowerMap from "../../hooks/useFlowerMap";
+import { useToast } from "../../hooks/useToast";
 
 export default function PlantPage2() {
   useEffect(() => {
@@ -17,17 +18,24 @@ export default function PlantPage2() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
-  const [userMarkerData, setUserMarkerData] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [nameError, setNameError] = useState("");
-  const randomLocationRef = useRef<(() => void) | null>(null);
+  const onRandomLocationRef = useRef<(() => void) | null>(null);
   const isMobile = useIsMobile();
+  const { toast, showToast } = useToast(1500);
+  const { userMarkerLocation, error } = useFlowerMap({
+    enableClickEvent: true,
+    enableUserMarker: true,
+    onRandomLocation: onRandomLocationRef,
+  });
+
+  useEffect(() => {
+    if (!error) return;
+    showToast(error.message);
+  }, [error]);
 
   // 이름 유효성 검사
-  const validateName = (name: string): string => {
+  const validateName = (name: string, message: string): string => {
     if (!name.trim()) {
       return "이름을 입력해주세요";
     }
@@ -36,6 +44,12 @@ export default function PlantPage2() {
     }
     if (name.trim().length > 15) {
       return "이름은 15글자 이하로 입력해주세요";
+    }
+    if (!message.trim()) {
+      return "감사 편지를 입력해주세요";
+    }
+    if (message.trim().length > 50) {
+      return "감사 편지는 50자 이내로 입력해주세요";
     }
     // 특수문자나 숫자만 있는 경우 체크
     // if (!/^[가-힣a-zA-Z0-9\s]+$/.test(name.trim())) {
@@ -46,7 +60,7 @@ export default function PlantPage2() {
 
   const handlePlant = () => {
     // 이름 유효성 검사
-    const nameValidationError = validateName(name);
+    const nameValidationError = validateName(name, message);
     if (nameValidationError) {
       setNameError(nameValidationError);
       safeTrack("plant_validation_error", {
@@ -56,19 +70,19 @@ export default function PlantPage2() {
       return;
     }
 
-    if (!(name.trim() && userMarkerData)) return;
+    if (!(name.trim() && userMarkerLocation)) return;
 
     safeTrack("flower_plant_attempt", {
       name: name.trim(),
       message_length: message.trim().length,
       has_message: !!message.trim(),
-      location: userMarkerData,
+      location: userMarkerLocation,
     });
 
     console.log("Planting flower:", {
       name,
       message,
-      location: userMarkerData,
+      location: userMarkerLocation,
     });
     // 꽃 심기 완료 후 기부 모달 표시
     setShowDonationModal(true);
@@ -76,24 +90,23 @@ export default function PlantPage2() {
 
   const handleRandomLocation = () => {
     safeTrack("random_location_button_click");
-    if (randomLocationRef.current) {
-      randomLocationRef.current();
-    }
+    if (!onRandomLocationRef.current) return;
+    onRandomLocationRef.current();
   };
 
   const handleDonation = () => {
     safeTrack("donation_button_click", {
       name: name.trim(),
       message_length: message.trim().length,
-      location: userMarkerData,
+      location: userMarkerLocation,
     });
 
     // 카카오같이가치 기부 페이지로 이동
     window.open("https://together.kakao.com", "_blank");
 
     fetchPlantFlower({
-      latitude: userMarkerData?.lat || 0,
-      longitude: userMarkerData?.lng || 0,
+      latitude: userMarkerLocation?.lat || 0,
+      longitude: userMarkerLocation?.lng || 0,
       name,
       message,
     }).then(() => {
@@ -101,7 +114,7 @@ export default function PlantPage2() {
         name: name.trim(),
         message_length: message.trim().length,
         has_message: !!message.trim(),
-        location: userMarkerData,
+        location: userMarkerLocation,
         with_donation: true,
       });
 
@@ -109,7 +122,7 @@ export default function PlantPage2() {
         state: {
           name,
           message,
-          flowerLocation: userMarkerData,
+          flowerLocation: userMarkerLocation,
         },
       });
     });
@@ -119,12 +132,12 @@ export default function PlantPage2() {
     safeTrack("donation_modal_closed", {
       name: name.trim(),
       message_length: message.trim().length,
-      location: userMarkerData,
+      location: userMarkerLocation,
     });
 
     fetchPlantFlower({
-      latitude: userMarkerData?.lat || 0,
-      longitude: userMarkerData?.lng || 0,
+      latitude: userMarkerLocation?.lat || 0,
+      longitude: userMarkerLocation?.lng || 0,
       name,
       message,
     }).then(() => {
@@ -132,7 +145,7 @@ export default function PlantPage2() {
         name: name.trim(),
         message_length: message.trim().length,
         has_message: !!message.trim(),
-        location: userMarkerData,
+        location: userMarkerLocation,
         with_donation: false,
       });
 
@@ -140,7 +153,7 @@ export default function PlantPage2() {
         state: {
           name,
           message,
-          flowerLocation: userMarkerData,
+          flowerLocation: userMarkerLocation,
         },
       });
     });
@@ -159,7 +172,7 @@ export default function PlantPage2() {
         <button
           onClick={handlePlant}
           className={`${styles.button} ${styles.secondaryButton}`}
-          disabled={!name.trim() || !userMarkerData}
+          disabled={!name.trim() || !message.trim() || !userMarkerLocation}
         >
           이 위치에 심기
         </button>
@@ -232,7 +245,7 @@ export default function PlantPage2() {
 
               <div className={styles.inputGroup}>
                 <label htmlFor="message" className={styles.label}>
-                  감사 편지 (선택)
+                  감사 편지
                 </label>
                 <textarea
                   id="message"
@@ -258,12 +271,20 @@ export default function PlantPage2() {
         </div>
 
         <div className={styles.rightSection}>
-          <div className={styles.mapPlaceholder}>
-            <PlantMap
-              setUserMarkerData={setUserMarkerData}
-              onRandomLocation={randomLocationRef}
-            />
+          <div className={styles.mapContainer}>
+            <div id="map" className={styles.mapPlaceholder} />
+            {toast.enabled && (
+              <div
+                className={styles.toast}
+                style={{
+                  opacity: toast.closing ? 0 : 1,
+                }}
+              >
+                ⚠️ {toast.message}
+              </div>
+            )}
           </div>
+
           {isMobile && <ButtonGroup />}
         </div>
       </div>
