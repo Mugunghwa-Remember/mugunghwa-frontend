@@ -8,6 +8,11 @@ import { safeTrack } from "../../utils/mixpanel";
 import useFlowerMap from "../../hooks/useFlowerMap";
 import { useToast } from "../../hooks/useToast";
 
+const basicMessages = [
+  "나라를 위해 헌신해주신 모든 분들께 진심으로 감사드립니다.",
+  "1",
+];
+
 export default function PlantPage2() {
   useEffect(() => {
     safeTrack("page_view", {
@@ -18,7 +23,7 @@ export default function PlantPage2() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [message, setMessage] = useState(
-    "나라를 위해 헌신해주신 모든 분들께 진심으로 감사드립니다."
+    basicMessages[Math.floor(Math.random() * basicMessages.length)]
   );
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [nameError, setNameError] = useState("");

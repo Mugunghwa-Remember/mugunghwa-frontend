@@ -97,7 +97,7 @@ const ResultPage = () => {
         content: {
           title: "광복 80주년 기념 헌화 캠페인",
           description:
-            "월 15일, 무궁화 꽃이 피었습니다. 당신의 무궁화를 심어주세요.",
+            "8월 15일, 무궁화 꽃이 피었습니다. 대한민국에 당신의 무궁화를 심어주세요.",
           // imageUrl: "",
           imageUrl: "https://i.imgur.com/5cFbxtZ.png",
           link: {
