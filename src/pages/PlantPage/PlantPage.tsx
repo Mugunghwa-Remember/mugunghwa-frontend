@@ -188,6 +188,8 @@ export default function PlantPage2() {
     );
   };
 
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+
   return (
     <div className={styles.container}>
       {/* 기부 모달 */}
@@ -273,7 +275,14 @@ export default function PlantPage2() {
         </div>
 
         <div className={styles.rightSection}>
-          <div className={styles.mapContainer}>
+          <div
+            className={styles.mapContainer}
+            ref={mapContainerRef}
+            tabIndex={-1}
+            onClick={() => {
+              mapContainerRef.current?.focus();
+            }}
+          >
             <div id="map" className={styles.mapPlaceholder} />
             {toast.enabled && (
               <div
