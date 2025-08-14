@@ -104,7 +104,10 @@ export default function PlantPage2() {
     });
 
     // 카카오같이가치 기부 페이지로 이동
-    window.open("https://together.kakao.com", "_blank");
+    window.open(
+      "https://together.kakao.com/fundraisings/128878/story",
+      "_blank"
+    );
 
     fetchPlantFlower({
       latitude: userMarkerLocation?.lat || 0,
