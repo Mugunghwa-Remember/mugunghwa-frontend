@@ -172,17 +172,17 @@ export default function PlantPage2() {
     return (
       <div className={styles.buttonGroup}>
         <button
-          onClick={handlePlant}
+          onClick={handleRandomLocation}
           className={`${styles.button} ${styles.secondaryButton}`}
+        >
+          랜덤 위치
+        </button>
+        <button
+          onClick={handlePlant}
+          className={`${styles.button} ${styles.primaryButton}`}
           disabled={!name.trim() || !message.trim() || !userMarkerLocation}
         >
           이 위치에 심기
-        </button>
-        <button
-          onClick={handleRandomLocation}
-          className={`${styles.button} ${styles.primaryButton}`}
-        >
-          랜덤 위치
         </button>
       </div>
     );
