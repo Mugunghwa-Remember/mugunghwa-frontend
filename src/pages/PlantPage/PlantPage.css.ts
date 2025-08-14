@@ -288,10 +288,8 @@ export const mapContainer = style({
   overflow: "hidden",
   position: "relative",
 
-  selectors: {
-    ":focus": {
-      outline: "none",
-    },
+  ":focus": {
+    outline: "none",
   },
 
   "@media": {
