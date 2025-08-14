@@ -157,6 +157,7 @@ export default function PlantPage2() {
           message,
           flowerLocation: userMarkerLocation,
         },
+        replace: true,
       });
     });
   };
