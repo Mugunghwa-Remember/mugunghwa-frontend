@@ -17,7 +17,9 @@ export default function PlantPage2() {
 
   const navigate = useNavigate();
   const [name, setName] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(
+    "나라를 위해 헌신해주신 모든 분들께 진심으로 감사드립니다."
+  );
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [nameError, setNameError] = useState("");
   const onRandomLocationRef = useRef<(() => void) | null>(null);

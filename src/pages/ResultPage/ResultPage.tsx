@@ -9,6 +9,7 @@ import useFlowerMap from "../../hooks/useFlowerMap";
 import logoPng from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
 import { safeTrack } from "../../utils/mixpanel";
+import fetchFlowerProgress from "../../controllers/flowerProgress/api";
 
 const ResultPage = () => {
   useEffect(() => {
@@ -98,19 +99,18 @@ const ResultPage = () => {
           description:
             "당신의 무궁화가 피었습니다. 이 순간을 함께 나누어보세요.",
           // imageUrl: "",
-          imageUrl:
-            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2ve25nQY6AioOnyG7jupu6JQLWzr7gNZAfA&s", // 실제 이미지 URL로 교체 필요
+          imageUrl: "/main-image.png",
           link: {
-            mobileWebUrl: window.location.href,
-            webUrl: window.location.href,
+            mobileWebUrl: window.location.hostname,
+            webUrl: window.location.hostname,
           },
         },
         buttons: [
           {
             title: "무궁화 심기",
             link: {
-              mobileWebUrl: window.location.href,
-              webUrl: window.location.href,
+              mobileWebUrl: window.location.hostname,
+              webUrl: window.location.hostname,
             },
           },
         ],
@@ -171,11 +171,16 @@ const ResultPage = () => {
     enableClickEvent: false,
   });
   const [isMounted, setIsMounted] = useState(false);
+  const [flowerCount, setFlowerCount] = useState(0);
 
   useEffect(() => {
     if (!isMounted) return;
 
     if (!mapRef.current) return;
+
+    fetchFlowerProgress().then((res) => {
+      setFlowerCount(res.data.currentCount);
+    });
 
     createMarker(
       mapRef.current,
@@ -205,10 +210,8 @@ const ResultPage = () => {
             <div id="map" className={styles.cardMap} />
           </div>
           <div className={styles.cardMessageContainer}>
-            <p className={styles.cardMessage}>
-              독립을 선물해주셔서 감사합니다 독립을 선물해주셔서 감사합니다
-            </p>
-            <p className={styles.cardUserName}>-닉네임-</p>
+            <p className={styles.cardMessage}>{message}</p>
+            <p className={styles.cardUserName}>-{name}-</p>
           </div>
           <div className={styles.cardFlowers}>
             <div className={styles.cardFlowerLeft} />
@@ -217,7 +220,7 @@ const ResultPage = () => {
         </div>
         <div className={styles.cardFooter}>
           <div className={styles.cardFooterLine} />
-          <p>48,594번째 무궁화를 심었습니다.</p>
+          <p>{flowerCount.toLocaleString()}번째 무궁화를 심었습니다.</p>
           <div className={styles.cardFooterLine} />
         </div>
       </div>
