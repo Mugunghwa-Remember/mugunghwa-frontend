@@ -95,11 +95,11 @@ const ResultPage = () => {
       kakao.Link.sendDefault({
         objectType: "feed",
         content: {
-          title: "무궁화 꽃이 피었습니다",
+          title: "광복 80주년 기념 헌화 캠페인",
           description:
-            "당신의 무궁화가 피었습니다. 이 순간을 함께 나누어보세요.",
+            "월 15일, 무궁화 꽃이 피었습니다. 당신의 무궁화를 심어주세요.",
           // imageUrl: "",
-          imageUrl: "https://i.imgur.com/9EoYc97.png",
+          imageUrl: "https://i.imgur.com/5cFbxtZ.png",
           link: {
             mobileWebUrl: window.location.hostname,
             webUrl: window.location.hostname,
