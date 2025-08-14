@@ -167,6 +167,7 @@ const ResultPage = () => {
       scrollWheel: false,
       scaleControl: false,
       logoControl: false,
+      zoomControl: false,
     },
     enableClickEvent: false,
   });

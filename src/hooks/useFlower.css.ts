@@ -46,8 +46,10 @@ export const flowerMessage = style({
   fontSize: "16px",
   fontWeight: "400",
   color: "#433B2A",
-  whiteSpace: "nowrap",
-  maxWidth: "280",
+  whiteSpace: "wrap",
+  wordBreak: "break-word",
+  maxWidth: "280px",
+  width: "100dvh",
 });
 
 export const flowerName = style({
