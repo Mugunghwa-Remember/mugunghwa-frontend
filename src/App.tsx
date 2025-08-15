@@ -6,55 +6,45 @@ import ExplorePage from "./pages/ExplorePage/ExplorePage";
 import { AppStateProvider } from "./state/AppState";
 import ResultPage from "./pages/ResultPage/ResultPage";
 import AuthPage from "./pages/AuthPage/AuthPage";
-import backgroundImage from "./assets/index_background.png";
+import mainImage from "./assets/taegeukgi.png";
 import mixpanel from "mixpanel-browser";
 import { useEffect } from "react";
 import { safeTrack, safeIdentify, safeSetPeople } from "./utils/mixpanel";
+import MainLayout from "./layouts/MainLayout";
+import { vars } from "./styles/vars.css";
 
 export default function App() {
   return (
     <AppStateProvider>
-      <MainLayout />
+      <Main />
     </AppStateProvider>
   );
 }
 
-function MainLayout() {
+function Main() {
   const location = useLocation();
 
   const userAgent = navigator.userAgent.toLowerCase();
   const isKakaoInApp = userAgent.includes("kakaotalk");
-  const isInstagramInApp = userAgent.includes("Instagram");
-
-  // 카카오톡 인앱 브라우저일 경우에만 실행
-  if (isKakaoInApp || isInstagramInApp) {
-    window.location.href = "kakaotalk://inappbrowser/close";
-    // 크롬으로 새창 열기
-    window.location.href =
-      "intent://" +
-      window.location.href.replace(/https?:\/\//i, "") +
-      "#Intent;scheme=http;package=com.android.chrome;end";
-
-    // if (navigator.userAgent.match(/iPhone|iPad/i)) {
-    //   // 아이폰 접속 경우
-    //   console.log("");
-    //   console.log("[window ready] : [접속 모바일] : " + "[아이폰]");
-    //   console.log("");
-    // } else {
-    //   // 안드로이드 접속 경우
-    //   window.location.href = "kakaotalk://inappbrowser/close";
-    //   console.log("");
-    //   console.log("[window ready] : [접속 모바일] : " + "[안드로이드]");
-    //   console.log("");
-    //   // 크롬으로 새창 열기
-    //   window.location.href =
-    //     "intent://" +
-    //     window.location.href.replace(/https?:\/\//i, "") +
-    //     "#Intent;scheme=http;package=com.android.chrome;end";
-    // }
-  }
+  const isInstagramInApp = userAgent.includes("instagram");
 
   useEffect(() => {
+    // 카카오톡 인앱 브라우저일 경우에만 실행
+    if (isInstagramInApp) {
+      window.location.href = "instagram://inappbrowser/close";
+      window.location.href =
+        "intent://" +
+        window.location.href.replace(/https?:\/\//i, "") +
+        "#Intent;scheme=http;package=com.android.chrome;end";
+    } else if (isKakaoInApp) {
+      window.location.href = "kakaotalk://inappbrowser/close";
+      // 크롬으로 새창 열기
+      window.location.href =
+        "intent://" +
+        window.location.href.replace(/https?:\/\//i, "") +
+        "#Intent;scheme=http;package=com.android.chrome;end";
+    }
+
     try {
       mixpanel.init("13db1bc4631864c42165ba586b1b9cf1", {
         debug: true,
@@ -98,27 +88,36 @@ function MainLayout() {
     });
   }, [location.pathname]);
 
-  console.log(location.pathname);
+  if (isInstagramInApp || isKakaoInApp) {
+    return (
+      <MainLayout>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexGrow: "1",
+            flexDirection: "column",
+            gap: "24px",
+
+            fontFamily: vars.fonts.pretendard,
+            fontWeight: "600",
+          }}
+        >
+          <img
+            src={mainImage}
+            style={{
+              maxWidth: "280px",
+            }}
+          />
+          ⚠️ 크롬브라우저를 이용해주세요
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-        height: "100dvh",
-        alignItems: "center",
-        overflowY: "auto",
-        backgroundImage: ["/", "/result"].includes(location.pathname)
-          ? `linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(${backgroundImage})`
-          : "none",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        padding: "0 20px",
-        boxSizing: "border-box",
-      }}
-    >
+    <MainLayout>
       <Routes>
         <Route path="/" element={<IntroPage />} />
         <Route path="/plant" element={<PlantPage />} />
@@ -126,6 +125,6 @@ function MainLayout() {
         <Route path="/result" element={<ResultPage />} />
         <Route path="/oauth" element={<AuthPage />} />
       </Routes>
-    </div>
+    </MainLayout>
   );
 }

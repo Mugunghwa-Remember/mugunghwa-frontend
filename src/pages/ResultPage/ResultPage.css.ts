@@ -305,6 +305,11 @@ export const exploreButton = style({
 
 export const exploreButtonLogo = style({
   width: "32px",
+  "@media": {
+    "(max-width: 768px)": {
+      width: "24px",
+    },
+  },
 });
 
 export const exploreButtonText = style({
@@ -315,7 +320,8 @@ export const exploreButtonText = style({
 
   "@media": {
     "(max-width: 768px)": {
-      display: "none",
+      // display: "none",
+      fontSize: "14px",
     },
   },
 });

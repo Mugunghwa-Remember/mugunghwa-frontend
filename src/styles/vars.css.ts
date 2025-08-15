@@ -8,7 +8,7 @@ export const vars = createGlobalTheme(":root", {
   },
   fonts: {
     sans: '"Noto Sans KR", system-ui, Arial, sans-serif',
-    pen: '"Nanum Pen Script", cursive',
+    pen: '"Nanum Pen Script", "Pretendard", cursive',
     yeongnamnu: '"MYYeongnamnu", "Noto Sans KR", system-ui, Arial, sans-serif',
     pretendard: '"Pretendard", "Noto Sans KR", system-ui, Arial, sans-serif',
   },
