@@ -22,6 +22,17 @@ export default function App() {
 function MainLayout() {
   const location = useLocation();
 
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isKakaoInApp = userAgent.includes("kakaotalk");
+
+  // 카카오톡 인앱 브라우저일 경우에만 실행
+  if (isKakaoInApp) {
+    const targetUrl = window.location.href;
+    window.location.replace(
+      `kakaotalk://web/openExternal?url=${encodeURIComponent(targetUrl)}`
+    );
+  }
+
   useEffect(() => {
     try {
       mixpanel.init("13db1bc4631864c42165ba586b1b9cf1", {
