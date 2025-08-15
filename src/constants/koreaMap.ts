@@ -43,4 +43,10 @@ export const MAP_DEFAULT_OPTIONS: naver.maps.MapOptions = {
   tileDuration: 300,
   tileSpare: 5,
   mapDataControl: false,
+  zoomControl: true,
+  zoomControlOptions: {
+    position: 3,
+    legendDisabled: false,
+    style: naver.maps.ZoomControlStyle.SMALL,
+  },
 };

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from "react";
 import * as styles from "./ResultPage.css";
-import domtoimage from "dom-to-image";
+// import domtoimage from "dom-to-image";
 import { saveAs } from "file-saver";
 import { useLocation } from "react-router-dom";
 import { createMarker, getFlowerHTML } from "../../utils/FlowerMap";
@@ -10,6 +10,8 @@ import logoPng from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
 import { safeTrack } from "../../utils/mixpanel";
 import { KOREA_CENTER } from "../../constants/koreaMap";
+import fetchFlowerProgress from "../../controllers/flowerProgress/api";
+import { toBlob } from "html-to-image";
 
 const ResultPage = () => {
   useEffect(() => {
@@ -26,7 +28,31 @@ const ResultPage = () => {
     flowerLocation: { lat: KOREA_CENTER[0], lng: KOREA_CENTER[1] },
   };
 
-  console.log(name, message, flowerLocation);
+  const buildBlobWithRetry = async (
+    element: HTMLElement,
+    minBlobSize = 500_000,
+    maxAttempts = 10
+  ) => {
+    let blob: Blob | null = null;
+    let attempt = 0;
+
+    while (attempt < maxAttempts) {
+      blob = await toBlob(element, {
+        cacheBust: true,
+        pixelRatio: 3,
+        skipFonts: false,
+      });
+
+      if (blob && blob.size > minBlobSize) {
+        break;
+      }
+
+      attempt += 1;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    return blob;
+  };
 
   // 이미지 저장 기능
   const handleSaveImage = async () => {
@@ -39,29 +65,36 @@ const ResultPage = () => {
       flower_location: flowerLocation,
     });
 
-    try {
-      const blob = await domtoimage.toBlob(cardRef.current);
-      saveAs(blob, "영원히 기억될 무궁화.png");
-
-      safeTrack("image_save_success", {
-        name,
-        message_length: message?.length || 0,
-        has_message: !!message,
-        flower_location: flowerLocation,
-      });
-    } catch (error) {
-      console.error("이미지 저장 실패:", error);
-
-      safeTrack("image_save_error", {
-        name,
-        message_length: message?.length || 0,
-        has_message: !!message,
-        flower_location: flowerLocation,
-        error: error instanceof Error ? error.message : String(error),
-      });
-
-      alert("이미지 저장에 실패했습니다. 다시 시도해주세요.");
+    const image = await buildBlobWithRetry(cardRef.current as HTMLElement);
+    if (image) {
+      saveAs(image, "영원히 기억될 무궁화.png");
     }
+
+    console.log(image);
+
+    // try {
+    //   const blob = await domtoimage.toBlob(cardRef.current);
+    //   saveAs(blob, "영원히 기억될 무궁화.png");
+
+    //   safeTrack("image_save_success", {
+    //     name,
+    //     message_length: message?.length || 0,
+    //     has_message: !!message,
+    //     flower_location: flowerLocation,
+    //   });
+    // } catch (error) {
+    //   console.error("이미지 저장 실패:", error);
+
+    //   safeTrack("image_save_error", {
+    //     name,
+    //     message_length: message?.length || 0,
+    //     has_message: !!message,
+    //     flower_location: flowerLocation,
+    //     error: error instanceof Error ? error.message : String(error),
+    //   });
+
+    //   alert("이미지 저장에 실패했습니다. 다시 시도해주세요.");
+    // }
   };
 
   useEffect(() => {
@@ -97,23 +130,22 @@ const ResultPage = () => {
       kakao.Link.sendDefault({
         objectType: "feed",
         content: {
-          title: "무궁화 꽃이 피었습니다",
+          title: "광복 80주년 기념 헌화 캠페인",
           description:
-            "당신의 무궁화가 피었습니다. 이 순간을 함께 나누어보세요.",
+            "8월 15일, 무궁화 꽃이 피었습니다. 대한민국에 당신의 무궁화를 심어주세요.",
           // imageUrl: "",
-          imageUrl:
-            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2ve25nQY6AioOnyG7jupu6JQLWzr7gNZAfA&s", // 실제 이미지 URL로 교체 필요
+          imageUrl: "https://i.imgur.com/5cFbxtZ.png",
           link: {
-            mobileWebUrl: window.location.href,
-            webUrl: window.location.href,
+            mobileWebUrl: window.location.hostname,
+            webUrl: window.location.hostname,
           },
         },
         buttons: [
           {
             title: "무궁화 심기",
             link: {
-              mobileWebUrl: window.location.href,
-              webUrl: window.location.href,
+              mobileWebUrl: window.location.hostname,
+              webUrl: window.location.hostname,
             },
           },
         ],
@@ -170,15 +202,21 @@ const ResultPage = () => {
       scrollWheel: false,
       scaleControl: false,
       logoControl: false,
+      zoomControl: false,
     },
     enableClickEvent: false,
   });
   const [isMounted, setIsMounted] = useState(false);
+  const [flowerCount, setFlowerCount] = useState(0);
 
   useEffect(() => {
     if (!isMounted) return;
 
     if (!mapRef.current) return;
+
+    fetchFlowerProgress().then((res) => {
+      setFlowerCount(res.data.currentCount);
+    });
 
     createMarker(
       mapRef.current,
@@ -208,10 +246,8 @@ const ResultPage = () => {
             <div id="map" className={styles.cardMap} />
           </div>
           <div className={styles.cardMessageContainer}>
-            <p className={styles.cardMessage}>
-              독립을 선물해주셔서 감사합니다 독립을 선물해주셔서 감사합니다
-            </p>
-            <p className={styles.cardUserName}>-닉네임-</p>
+            <p className={styles.cardMessage}>{message}</p>
+            <p className={styles.cardUserName}>-{name}-</p>
           </div>
           <div className={styles.cardFlowers}>
             <div className={styles.cardFlowerLeft} />
@@ -220,7 +256,7 @@ const ResultPage = () => {
         </div>
         <div className={styles.cardFooter}>
           <div className={styles.cardFooterLine} />
-          <p>48,594번째 무궁화를 심었습니다.</p>
+          <p>{flowerCount.toLocaleString()}번째 무궁화를 심었습니다.</p>
           <div className={styles.cardFooterLine} />
         </div>
       </div>

@@ -80,6 +80,8 @@ const useFlowerMap = ({
   const handleError = (errorMessage: string) => {
     setError({ message: errorMessage, timestamp: new Date() });
     console.error("Map Error:", errorMessage);
+    // 지도 관련 에러 발생 시 추적
+    safeTrack("map_error", { error_message: errorMessage });
   };
 
   const clearError = () => {
@@ -120,6 +122,8 @@ const useFlowerMap = ({
   const addUserMarker = (lat: number, lng: number) => {
     if (!isPointInPolygon([lat, lng], KOREA_LAND_BOUNDARY)) {
       handleError("한국 영역 내에서만 심을 수 있어요");
+      // 한국 영역 밖에 마커 추가 시도 시 추적
+      safeTrack("map_user_marker_out_of_bounds", { lat, lng });
       return;
     }
 
@@ -131,6 +135,8 @@ const useFlowerMap = ({
     // 기존 사용자 마커가 있으면 제거
     if (userMarkerRef.current) {
       userMarkerRef.current.setMap(null);
+      // 기존 마커 제거 시 추적
+      safeTrack("map_user_marker_removed");
     }
 
     try {
@@ -147,6 +153,8 @@ const useFlowerMap = ({
       if (enableClickEvent) {
         // 마커 클릭 이벤트 - 마커 제거
         naver.maps.Event.addListener(marker, "click", () => {
+          // 사용자 마커 클릭으로 제거 시 추적
+          safeTrack("map_user_marker_click_remove");
           marker.setMap(null);
           userMarkerRef.current = null;
           setUserMarkerLocation(null);
@@ -157,6 +165,9 @@ const useFlowerMap = ({
       setUserMarkerLocation({ lat, lng });
       smoothMoveTo(mapRef.current, lat, lng);
       clearError(); // 성공 시 에러 클리어
+
+      // 새 마커 추가 성공 시 추적
+      safeTrack("map_user_marker_added", { lat, lng });
       return marker;
     } catch (err) {
       const errorMessage =
@@ -171,6 +182,13 @@ const useFlowerMap = ({
   const handleClusterClick = (flower: ClusteredExistingFlowers) => {
     if (!mapRef.current) return;
 
+    // 클러스터 클릭 시 추적 (클러스터 타입, 위치 정보)
+    safeTrack("map_cluster_click", {
+      cluster_type: flower.type,
+      latitude: flower.latitude,
+      longitude: flower.longitude,
+    });
+
     resetSubFlower();
     resetFlowerMessage();
     resetExistingFlowers();
@@ -182,6 +200,13 @@ const useFlowerMap = ({
     marker: naver.maps.Marker,
     flower: ClusteredExistingFlowers
   ) => {
+    // 리프 클릭 시 추적 (리프 타입, 위치 정보)
+    safeTrack("map_leaf_click", {
+      leaf_type: flower.type,
+      latitude: flower.latitude,
+      longitude: flower.longitude,
+    });
+
     resetSubFlower();
     resetFlowerMessage();
 
@@ -253,6 +278,17 @@ const useFlowerMap = ({
     isSubFlower?: boolean
   ) => {
     const flowerData = flower.data as ClusteredExistingFlowersFlower;
+
+    // 개별 꽃 클릭 시 추적 (꽃 ID, 이름, 위치, 서브플라워 여부, 메시지 존재 여부)
+    safeTrack("map_flower_click", {
+      flower_id: flower.id,
+      flower_name: flowerData.name,
+      latitude: flower.latitude,
+      longitude: flower.longitude,
+      is_sub_flower: isSubFlower,
+      has_message: !!flowerData.message.trim(),
+    });
+
     smoothMoveTo(mapRef.current, flower.latitude, flower.longitude);
 
     if (!mapRef.current) return;
@@ -365,6 +401,8 @@ const useFlowerMap = ({
       }
 
       naver.maps.Event.addListener(newMap, "zoomstart", () => {
+        // 지도 줌 시작 시 추적
+        safeTrack("map_zoom_start");
         resetFlowerMessage();
         resetSubFlower();
         resetExistingFlowers();
@@ -403,6 +441,18 @@ const useFlowerMap = ({
     if (!map) return;
 
     getExistingFlowersData(zoomData).then((data) => {
+      // 꽃 데이터 로드 완료 시 추적 (줌 레벨, 꽃 개수, 경계 정보)
+      safeTrack("map_flowers_loaded", {
+        zoom_level: zoomData.zoom,
+        flower_count: data.flowers.length,
+        bounds: {
+          minlat: zoomData.minlat,
+          minlng: zoomData.minlng,
+          maxlat: zoomData.maxlat,
+          maxlng: zoomData.maxlng,
+        },
+      });
+
       // 기존 마커들을 Map으로 변환하여 빠른 검색 가능
       const existingMarkersMap = new Map<string, naver.maps.Marker>();
       existingFlowersRef.current.forEach((marker) => {

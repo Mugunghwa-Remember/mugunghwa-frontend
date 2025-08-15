@@ -8,6 +8,29 @@ import { safeTrack } from "../../utils/mixpanel";
 import useFlowerMap from "../../hooks/useFlowerMap";
 import { useToast } from "../../hooks/useToast";
 
+const basicMessages = [
+  "나라의 자유를 위해 애써주신 모든 분들께 깊이 감사드립니다.",
+  "대한민국의 평화를 위해 힘써주신 모든 분들께 진심으로 감사드립니다.",
+  "조국을 지켜주신 모든 분들께 마음 깊이 감사드립니다.",
+  "나라의 미래를 위해 헌신하신 모든 분들께 감사드립니다.",
+  "대한민국의 오늘을 만들어주신 모든 분들께 진심으로 감사드립니다.",
+  "자유와 평화를 위해 힘써주신 모든 분들께 감사드립니다.",
+  "나라를 지켜주신 모든 분들께 진심으로 감사드립니다.",
+  "조국의 독립을 위해 애써주신 모든 분들께 감사드립니다.",
+  "대한민국의 빛을 밝혀주신 모든 분들께 진심으로 감사드립니다.",
+  "자유로운 대한민국을 위해 헌신하신 모든 분들께 감사드립니다.",
+  "나라를 사랑해주신 모든 분들께 진심으로 감사드립니다.",
+  "평화를 위해 싸워주신 모든 분들께 깊이 감사드립니다.",
+  "조국을 위해 희생하신 모든 분들께 진심으로 감사드립니다.",
+  "나라의 독립을 위해 힘써주신 모든 분들께 감사드립니다.",
+  "대한민국을 위해 헌신하신 모든 분들께 진심으로 감사드립니다.",
+  "자유와 독립을 위해 애써주신 모든 분들께 감사드립니다.",
+  "조국을 위해 끝까지 싸워주신 모든 분들께 감사드립니다.",
+  "나라의 자긍심을 지켜주신 모든 분들께 진심으로 감사드립니다.",
+  "대한민국의 역사를 지켜주신 모든 분들께 감사드립니다.",
+  "나라의 평화를 위해 헌신해주신 모든 분들께 진심으로 감사드립니다.",
+];
+
 export default function PlantPage2() {
   useEffect(() => {
     safeTrack("page_view", {
@@ -17,7 +40,9 @@ export default function PlantPage2() {
 
   const navigate = useNavigate();
   const [name, setName] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(
+    basicMessages[Math.floor(Math.random() * basicMessages.length)]
+  );
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [nameError, setNameError] = useState("");
   const onRandomLocationRef = useRef<(() => void) | null>(null);
@@ -102,7 +127,10 @@ export default function PlantPage2() {
     });
 
     // 카카오같이가치 기부 페이지로 이동
-    window.open("https://together.kakao.com", "_blank");
+    window.open(
+      "https://together.kakao.com/fundraisings/128878/story",
+      "_blank"
+    );
 
     fetchPlantFlower({
       latitude: userMarkerLocation?.lat || 0,
@@ -155,6 +183,7 @@ export default function PlantPage2() {
           message,
           flowerLocation: userMarkerLocation,
         },
+        replace: true,
       });
     });
   };
@@ -170,21 +199,23 @@ export default function PlantPage2() {
     return (
       <div className={styles.buttonGroup}>
         <button
-          onClick={handlePlant}
+          onClick={handleRandomLocation}
           className={`${styles.button} ${styles.secondaryButton}`}
+        >
+          랜덤 위치
+        </button>
+        <button
+          onClick={handlePlant}
+          className={`${styles.button} ${styles.primaryButton}`}
           disabled={!name.trim() || !message.trim() || !userMarkerLocation}
         >
           이 위치에 심기
         </button>
-        <button
-          onClick={handleRandomLocation}
-          className={`${styles.button} ${styles.primaryButton}`}
-        >
-          랜덤 위치
-        </button>
       </div>
     );
   };
+
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className={styles.container}>
@@ -271,7 +302,14 @@ export default function PlantPage2() {
         </div>
 
         <div className={styles.rightSection}>
-          <div className={styles.mapContainer}>
+          <div
+            className={styles.mapContainer}
+            ref={mapContainerRef}
+            tabIndex={-1}
+            onClick={() => {
+              mapContainerRef.current?.focus();
+            }}
+          >
             <div id="map" className={styles.mapPlaceholder} />
             {toast.enabled && (
               <div
