@@ -24,13 +24,33 @@ function MainLayout() {
 
   const userAgent = navigator.userAgent.toLowerCase();
   const isKakaoInApp = userAgent.includes("kakaotalk");
+  const isInstagramInApp = userAgent.includes("Instagram");
 
   // 카카오톡 인앱 브라우저일 경우에만 실행
-  if (isKakaoInApp) {
-    const targetUrl = window.location.href;
-    window.location.replace(
-      `kakaotalk://web/openExternal?url=${encodeURIComponent(targetUrl)}`
-    );
+  if (isKakaoInApp || isInstagramInApp) {
+    // window.location.href = "kakaotalk://inappbrowser/close";
+    // // 크롬으로 새창 열기
+    // window.location.href =
+    //   "intent://" +
+    //   window.location.href.replace(/https?:\/\//i, "") +
+    //   "#Intent;scheme=http;package=com.android.chrome;end";
+    // if (navigator.userAgent.match(/iPhone|iPad/i)) {
+    //   // 아이폰 접속 경우
+    //   console.log("");
+    //   console.log("[window ready] : [접속 모바일] : " + "[아이폰]");
+    //   console.log("");
+    // } else {
+    //   // 안드로이드 접속 경우
+    //   window.location.href = "kakaotalk://inappbrowser/close";
+    //   console.log("");
+    //   console.log("[window ready] : [접속 모바일] : " + "[안드로이드]");
+    //   console.log("");
+    //   // 크롬으로 새창 열기
+    //   window.location.href =
+    //     "intent://" +
+    //     window.location.href.replace(/https?:\/\//i, "") +
+    //     "#Intent;scheme=http;package=com.android.chrome;end";
+    // }
   }
 
   useEffect(() => {

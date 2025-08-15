@@ -45,6 +45,15 @@
   --ink: #343434;
   --paper: #f8f4ed;
   --primary: #d8493f;
+  color-scheme: light only;
+}
+
+@media (prefers-color-scheme: dark) {
+  html,
+  body {
+    background: #fff !important;
+    background-color: #fff !important;
+  }
 }
 
 html {
