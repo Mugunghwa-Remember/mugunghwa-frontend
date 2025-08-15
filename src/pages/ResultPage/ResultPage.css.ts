@@ -110,12 +110,13 @@ export const cardContent = style({
 
 export const cardMapContainer = style({
   width: "250px",
-  height: "auto",
+  height: "170px",
   aspectRatio: "25/17",
 
   gap: "12px",
   position: "relative",
   padding: "10px",
+  boxSizing: "border-box",
 });
 
 export const cardMapFrame = style({

@@ -12,6 +12,7 @@ import { safeTrack } from "../../utils/mixpanel";
 import { KOREA_CENTER } from "../../constants/koreaMap";
 import fetchFlowerProgress from "../../controllers/flowerProgress/api";
 import { toBlob } from "html-to-image";
+import { useToast } from "../../hooks/useToast";
 
 const ResultPage = () => {
   useEffect(() => {
@@ -23,6 +24,7 @@ const ResultPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const cardRef = useRef<HTMLDivElement>(null);
+  const { toast, showToast } = useToast();
 
   const { name, message, flowerLocation } = location.state ?? {
     flowerLocation: { lat: KOREA_CENTER[0], lng: KOREA_CENTER[1] },
@@ -58,6 +60,8 @@ const ResultPage = () => {
   const handleSaveImage = async () => {
     if (!cardRef.current) return;
 
+    showToast("📥 이미지 저장 중...", 15000);
+
     safeTrack("image_save_attempt", {
       name,
       message_length: message?.length || 0,
@@ -65,12 +69,32 @@ const ResultPage = () => {
       flower_location: flowerLocation,
     });
 
-    const image = await buildBlobWithRetry(cardRef.current as HTMLElement);
-    if (image) {
-      saveAs(image, "영원히 기억될 무궁화.png");
-    }
+    try {
+      const blob = await buildBlobWithRetry(cardRef.current as HTMLElement);
+      if (!blob) throw new Error();
+      saveAs(blob, "영원히 기억될 무궁화.png");
+      showToast("✅ 이미지 저장 완료!");
 
-    console.log(image);
+      safeTrack("image_save_success", {
+        name,
+        message_length: message?.length || 0,
+        has_message: !!message,
+        flower_location: flowerLocation,
+      });
+    } catch (error) {
+      console.error("이미지 저장 실패:", error);
+      showToast("❌ 이미지 저장 실패");
+
+      safeTrack("image_save_error", {
+        name,
+        message_length: message?.length || 0,
+        has_message: !!message,
+        flower_location: flowerLocation,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      alert("이미지 저장에 실패했습니다. 다시 시도해주세요.");
+    }
 
     // try {
     //   const blob = await domtoimage.toBlob(cardRef.current);
@@ -238,27 +262,54 @@ const ResultPage = () => {
         <p className={styles.subtitle}>이 순간을 저장하고 공유해보세요</p>
       </div>
 
-      <div ref={cardRef} className={styles.cardContainer}>
-        <div className={styles.cardTitle} />
-        <div className={styles.cardContent}>
-          <div className={styles.cardMapContainer}>
-            <div className={styles.cardMapFrame} />
-            <div id="map" className={styles.cardMap} />
+      <div style={{ position: "relative" }}>
+        <div ref={cardRef} className={styles.cardContainer}>
+          <div className={styles.cardTitle} />
+          <div className={styles.cardContent}>
+            <div className={styles.cardMapContainer}>
+              <div className={styles.cardMapFrame} />
+              <div id="map" className={styles.cardMap} />
+            </div>
+            <div className={styles.cardMessageContainer}>
+              <p className={styles.cardMessage}>{message}</p>
+              <p className={styles.cardUserName}>-{name}-</p>
+            </div>
+            <div className={styles.cardFlowers}>
+              <div className={styles.cardFlowerLeft} />
+              <div className={styles.cardFlowerRight} />
+            </div>
           </div>
-          <div className={styles.cardMessageContainer}>
-            <p className={styles.cardMessage}>{message}</p>
-            <p className={styles.cardUserName}>-{name}-</p>
-          </div>
-          <div className={styles.cardFlowers}>
-            <div className={styles.cardFlowerLeft} />
-            <div className={styles.cardFlowerRight} />
+          <div className={styles.cardFooter}>
+            <div className={styles.cardFooterLine} />
+            <p>{flowerCount.toLocaleString()}번째 무궁화를 심었습니다.</p>
+            <div className={styles.cardFooterLine} />
           </div>
         </div>
-        <div className={styles.cardFooter}>
-          <div className={styles.cardFooterLine} />
-          <p>{flowerCount.toLocaleString()}번째 무궁화를 심었습니다.</p>
-          <div className={styles.cardFooterLine} />
-        </div>
+        {toast.enabled && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "20px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              color: "white",
+              padding: "12px 20px",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontFamily: "Pretendard, sans-serif",
+              fontWeight: "500",
+              zIndex: 1001,
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+              animation: "slideUp 0.3s ease-out",
+              transition: "opacity 0.3s ease-out",
+              whiteSpace: "nowrap",
+              opacity: toast.closing ? 0 : 1,
+            }}
+          >
+            {toast.message}
+          </div>
+        )}
       </div>
 
       <div className={styles.buttonContainer}>
