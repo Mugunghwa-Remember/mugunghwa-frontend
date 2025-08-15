@@ -28,12 +28,13 @@ function MainLayout() {
 
   // 카카오톡 인앱 브라우저일 경우에만 실행
   if (isKakaoInApp || isInstagramInApp) {
-    // window.location.href = "kakaotalk://inappbrowser/close";
-    // // 크롬으로 새창 열기
-    // window.location.href =
-    //   "intent://" +
-    //   window.location.href.replace(/https?:\/\//i, "") +
-    //   "#Intent;scheme=http;package=com.android.chrome;end";
+    window.location.href = "kakaotalk://inappbrowser/close";
+    // 크롬으로 새창 열기
+    window.location.href =
+      "intent://" +
+      window.location.href.replace(/https?:\/\//i, "") +
+      "#Intent;scheme=http;package=com.android.chrome;end";
+
     // if (navigator.userAgent.match(/iPhone|iPad/i)) {
     //   // 아이폰 접속 경우
     //   console.log("");
