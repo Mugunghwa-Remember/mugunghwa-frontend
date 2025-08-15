@@ -9,6 +9,7 @@ import useFlowerMap from "../../hooks/useFlowerMap";
 import logoPng from "../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
 import { safeTrack } from "../../utils/mixpanel";
+import { KOREA_CENTER } from "../../constants/koreaMap";
 
 const ResultPage = () => {
   useEffect(() => {
@@ -21,7 +22,9 @@ const ResultPage = () => {
   const location = useLocation();
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const { name, message, flowerLocation } = location.state;
+  const { name, message, flowerLocation } = location.state ?? {
+    flowerLocation: { lat: KOREA_CENTER[0], lng: KOREA_CENTER[1] },
+  };
 
   console.log(name, message, flowerLocation);
 
