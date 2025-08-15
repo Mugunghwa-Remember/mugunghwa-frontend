@@ -27,23 +27,45 @@ function Main() {
   const userAgent = navigator.userAgent.toLowerCase();
   const isKakaoInApp = userAgent.includes("kakaotalk");
   const isInstagramInApp = userAgent.includes("instagram");
+  const isiOS = /iphone|ipad|ipod/i.test(userAgent);
+  const isInApp = isKakaoInApp || isInstagramInApp;
 
   useEffect(() => {
-    // 카카오톡 인앱 브라우저일 경우에만 실행
-    if (isInstagramInApp) {
-      window.location.href = "instagram://inappbrowser/close";
-      window.location.href =
-        "intent://" +
-        window.location.href.replace(/https?:\/\//i, "") +
-        "#Intent;scheme=http;package=com.android.chrome;end";
-    } else if (isKakaoInApp) {
-      window.location.href = "kakaotalk://inappbrowser/close";
-      // 크롬으로 새창 열기
-      window.location.href =
-        "intent://" +
-        window.location.href.replace(/https?:\/\//i, "") +
-        "#Intent;scheme=http;package=com.android.chrome;end";
+    if (isInApp) {
+      if (isKakaoInApp) {
+        window.location.href = "kakaotalk://inappbrowser/close";
+      }
+
+      const target_url = window.location.href;
+      if (isiOS && isKakaoInApp) {
+        window.location.href =
+          "kakaotalk://web/openExternal?url=" + encodeURIComponent(target_url);
+      } else {
+        window.location.href =
+          "intent://" +
+          target_url.replace(/https?:\/\//i, "") +
+          "#Intent;scheme=http;package=com.android.chrome;end";
+      }
     }
+
+    // // 카카오톡 인앱 브라우저일 경우에만 실행
+    // if (isInstagramInApp) {
+    //   window.location.href = "instagram://inappbrowser/close";
+    //   window.location.href =
+    //     "intent://" +
+    //     window.location.href.replace(/https?:\/\//i, "") +
+    //     "#Intent;scheme=http;package=com.android.chrome;end";
+    // } else if (isKakaoInApp) {
+    //   window.location.href = "kakaotalk://inappbrowser/close";
+    //   // 크롬으로 새창 열기
+    //   const target_url = window.location.href;
+    //   window.location.href =
+    //     "kakaotalk://web/openExternal?url=" + encodeURIComponent(target_url);
+    //   // window.location.href =
+    //   //   "intent://" +
+    //   //   window.location.href.replace(/https?:\/\//i, "") +
+    //   //   "#Intent;scheme=http;package=com.android.chrome;end";
+    // }
 
     try {
       mixpanel.init("13db1bc4631864c42165ba586b1b9cf1", {
